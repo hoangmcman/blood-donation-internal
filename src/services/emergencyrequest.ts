@@ -104,8 +104,12 @@ export interface RejectEmergencyRequestPayload {
 }
 
 export interface RejectAllEmergencyRequestsPayload {
-  rejectionReason: string;
+  bloodGroup?: string
+  bloodRh?: string
+  bloodTypeComponent?: string
+  rejectionReason: string
 }
+
 
 // EmergencyRequest CRUD Operations
 export const getEmergencyRequestLogs = async (page: number = 1, limit: number = 10): Promise<EmergencyRequestLogResponse> => {

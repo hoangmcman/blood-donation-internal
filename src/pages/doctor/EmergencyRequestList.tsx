@@ -40,6 +40,9 @@ import {
 } from "../../services/emergencyrequest"
 import type { EmergencyRequestLog } from "../../services/emergencyrequest"
 import { ViewEmergencyRequestDetail } from "@/components/dialog/ViewEmergencyRequestDetail"
+import { ApproveEmergencyRequestDialog } from "@/components/dialog/ApproveEmergencyRequestDialog"
+import { RejectEmergencyRequestDialog } from "@/components/dialog/RejectEmergencyRequestDialog"
+import { RejectAllEmergencyRequestsDialog } from "@/components/dialog/RejectAllEmergencyRequestsDialog"
 
 export default function EmergencyRequestList() {
   const [sorting, setSorting] = React.useState<SortingState>([])
@@ -49,6 +52,18 @@ export default function EmergencyRequestList() {
     pageSize: 10,
   })
   const [selectedLogId, setSelectedLogId] = React.useState<string | null>(null)
+  const [approveRequestId, setApproveRequestId] = React.useState<string | null>(null)
+  const [rejectRequestId, setRejectRequestId] = React.useState<string | null>(null)
+  const [rejectAllOpen, setRejectAllOpen] = React.useState<boolean>(false)
+
+  const { data } = useGetEmergencyRequestLogs(
+    Number(pagination.pageIndex) + 1,
+    Number(pagination.pageSize)
+  )
+
+  const bloodGroups = [...new Set(data?.data.data.map((log) => log.emergencyRequest.bloodType.group) || [])]
+  const bloodRhs = [...new Set(data?.data.data.map((log) => log.emergencyRequest.bloodType.rh) || [])]
+  const bloodTypeComponents = [...new Set(data?.data.data.map((log) => log.emergencyRequest.bloodTypeComponent) || [])]
 
   const columns: ColumnDef<EmergencyRequestLog, any>[] = [
     {
@@ -99,7 +114,7 @@ export default function EmergencyRequestList() {
       cell: ({ row }) => row.original.emergencyRequest.requestedBy,
     } as ColumnDef<EmergencyRequestLog, string>,
     {
-      accessorKey: "note", // Không lồng nên giữ nguyên accessorKey
+      accessorKey: "note",
       header: "Ghi chú",
       cell: ({ row }) => row.original.note,
     },
@@ -107,7 +122,6 @@ export default function EmergencyRequestList() {
       id: "actions",
       header: "Hành động",
       cell: ({ row }) => {
-        const requestId = row.original.emergencyRequest.id
         const logId = row.original.id
 
         const handleShowDetail = () => {
@@ -115,13 +129,11 @@ export default function EmergencyRequestList() {
         }
 
         const handleApprove = () => {
-          console.log("Approve request:", requestId)
-          // Implement approve mutation here using useApproveEmergencyRequest
+          setApproveRequestId(logId)
         }
 
         const handleReject = () => {
-          console.log("Reject request:", requestId)
-          // Implement reject mutation here using useRejectEmergencyRequest
+          setRejectRequestId(logId)
         }
 
         return (
@@ -148,13 +160,13 @@ export default function EmergencyRequestList() {
     },
   ]
 
-  const { data, isLoading, error } = useGetEmergencyRequestLogs(
+  const { data: fullData, isLoading, error } = useGetEmergencyRequestLogs(
     Number(pagination.pageIndex) + 1,
     Number(pagination.pageSize)
   )
 
   const table = useReactTable({
-    data: data?.data.data || [],
+    data: fullData?.data.data || [],
     columns,
     state: {
       sorting,
@@ -169,7 +181,7 @@ export default function EmergencyRequestList() {
     getSortedRowModel: getSortedRowModel(),
     getRowId: (row) => row.id,
     manualPagination: true,
-    pageCount: data?.data.meta.totalPages,
+    pageCount: fullData?.data.meta.totalPages,
   })
 
   if (isLoading) {
@@ -184,6 +196,14 @@ export default function EmergencyRequestList() {
     <div className="w-full p-4">
       <div className="flex justify-between items-center mb-4">
         <h1 className="text-2xl font-bold">Danh sách yêu cầu khẩn cấp</h1>
+        <div className="flex items-center gap-2">
+          <Button
+            onClick={() => setRejectAllOpen(true)}
+            disabled={!(fullData?.data.data.some((log) => log.emergencyRequest.status.toLowerCase() === "pending"))}
+          >
+            Từ chối tất cả
+          </Button>
+        </div>
       </div>
       <div className="rounded-md border">
         <Table>
@@ -266,6 +286,23 @@ export default function EmergencyRequestList() {
         open={!!selectedLogId}
         onOpenChange={(open) => setSelectedLogId(open ? selectedLogId : null)}
         logId={selectedLogId || ""}
+      />
+      <ApproveEmergencyRequestDialog
+        open={!!approveRequestId}
+        onOpenChange={(open) => setApproveRequestId(open ? approveRequestId : null)}
+        requestId={approveRequestId || ""}
+      />
+      <RejectEmergencyRequestDialog
+        open={!!rejectRequestId}
+        onOpenChange={(open) => setRejectRequestId(open ? rejectRequestId : null)}
+        requestId={rejectRequestId || ""}
+      />
+      <RejectAllEmergencyRequestsDialog
+        open={rejectAllOpen}
+        onOpenChange={setRejectAllOpen}
+        bloodGroups={bloodGroups}
+        bloodRhs={bloodRhs}
+        bloodTypeComponents={bloodTypeComponents}
       />
     </div>
   )
