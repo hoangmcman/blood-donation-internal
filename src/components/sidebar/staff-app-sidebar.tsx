@@ -11,6 +11,8 @@ import {
   FileTextIcon,
   FlagTriangleRight,
   Droplet,
+  FilePlus,
+  ClipboardList,
 } from "lucide-react"
 import {
   Sidebar,
@@ -21,9 +23,16 @@ import {
   SidebarMenuButton,
   SidebarMenuItem,
 } from "@/components/ui/sidebar"
-
-// Giả sử StaffNavUser là một thành phần được định nghĩa ở nơi khác
 import { StaffNavUser } from "./staff-nav-user"
+import { useAuthContext } from "../../providers/AuthProvider"
+
+// Mock function to get user sub-role based on userId (replace with actual API call)
+const getUserSubRole = (userId: string | null): "staff" | "doctor" => {
+  // Based on provided schema
+  if (userId === "user_2zSQsxizyGvxjpPLOPJUJ1Fq5nJ") return "staff"
+  if (userId === "user_2zSQe5CvQDUSxEg7xsdr1q86q17") return "doctor"
+  return "staff" // Default to staff if unknown
+}
 
 const data = {
   navMain: [
@@ -31,27 +40,44 @@ const data = {
       title: "Hiến máu",
       url: "/staff/donation",
       icon: Cross,
+      roles: ["doctor"], // Only for doctor
     },
     {
       title: "Cập nhật đơn vị máu",
       url: "/staff",
       icon: FlagTriangleRight,
+      roles: ["doctor"], // Only for doctor
     },
     {
       title: "Quản lý đơn vị máu",
       url: "/staff/bloodunitmanagement",
       icon: Droplet,
+      roles: ["doctor"], // Only for doctor
+    },
+    {
+      title: "Yêu cầu khẩn cấp",
+      url: "/staff/emergency-request",
+      icon: FileClock,
+      roles: ["staff"], // Only for staff (replacing Lịch sử đơn vị máu)
     },
     {
       title: "Danh sách bài viết",
       url: "/staff/bloglist",
       icon: Newspaper,
+      roles: ["staff"], // Only for staff
     },
     {
-      title: "Lịch sử đơn vị máu",
-      url: "/staff/bloodunithistory",
-      icon: FileClock,
-    }
+      title: "Mẫu yêu cầu hiến máu",
+      url: "/staff/donation-request-template",
+      icon: FilePlus,
+      roles: ["doctor"], // Only for doctor
+    },
+    {
+      title: "Mẫu kết quả hiến máu",
+      url: "/staff/donation-result-templates",
+      icon: ClipboardList,
+      roles: ["doctor"], // Only for doctor
+    },
   ],
   navClouds: [
     {
@@ -103,7 +129,6 @@ const data = {
   ],
 }
 
-// Thành phần NavMain mới để xử lý điều hướng
 function NavMain({ items }: { items: typeof data.navMain }) {
   return (
     <SidebarMenu>
@@ -122,6 +147,12 @@ function NavMain({ items }: { items: typeof data.navMain }) {
 }
 
 export function StaffAppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
+  const { userId } = useAuthContext()
+  const subRole = getUserSubRole(userId)
+  
+  // Filter navMain items based on user sub-role
+  const filteredNavMain = data.navMain.filter((item) => item.roles.includes(subRole))
+
   return (
     <Sidebar collapsible="offcanvas" {...props}>
       <SidebarHeader>
@@ -140,7 +171,7 @@ export function StaffAppSidebar({ ...props }: React.ComponentProps<typeof Sideba
         </SidebarMenu>
       </SidebarHeader>
       <SidebarContent>
-        <NavMain items={data.navMain} />
+        <NavMain items={filteredNavMain} />
       </SidebarContent>
       <SidebarFooter>
         <StaffNavUser />

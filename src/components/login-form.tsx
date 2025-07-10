@@ -46,9 +46,9 @@ export function LoginForm({ className, onSwitchToSignup, ...props }: LoginFormPr
             const res = await api.get('/staffs/me');
             const role = res.data?.data?.role;
 
-            if (role === "admin") {
-              navigate("/admin/dashboard");
-            } else if (role === "doctor" || role === "staff") {
+            if (role === "staff") {
+              navigate("/staff/emergency-request");
+            } else if (role === "doctor") {
               navigate("/staff");
             } else {
               console.error("Vai trò không xác định từ API:", role);

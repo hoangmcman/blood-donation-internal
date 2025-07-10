@@ -1,5 +1,5 @@
 import { createBrowserRouter, Navigate } from 'react-router-dom'
-import LoginPage from '@/pages/Login' // Login page
+import LoginPage from '@/pages/Login'
 import { SignedOut, RedirectToSignIn, SignedIn } from "@clerk/clerk-react"
 
 import AdminLayout from './layouts/AdminLayout'
@@ -10,7 +10,6 @@ import BloodStock from './pages/admin/BloodStock'
 import AdminProfile from './pages/admin/AdminProfile'
 
 import StaffLayout from './layouts/StaffLayout'
-import BlogList from '@/pages/staff/BlogList'
 import Donation from '@/pages/staff/Donation'
 import BloodUnitManagement from '@/pages/staff/BloodUnitManagement'
 import StaffCampaignList from '@/pages/staff/StaffCampaignList'
@@ -18,12 +17,14 @@ import StaffProfile from './pages/staff/StaffProfile'
 import BloodUnitHistory from './pages/staff/BloodUnitHistory'
 import DonationRequestList from './pages/staff/DonationRequestList'
 
+import BlogList from '@/pages/doctor/BlogList'
+import EmergencyRequestList from '@/pages/doctor/EmergencyRequestList'
+
 export const router = createBrowserRouter([
   {
     path: '/',
     element: <Navigate to="/admin" replace />
   },
-
   {
     path: '/admin',
     element: (
@@ -99,6 +100,10 @@ export const router = createBrowserRouter([
       {
         path: 'staffprofile',
         element: <StaffProfile />
+      },
+      {
+        path: 'emergency-request',
+        element: <EmergencyRequestList />
       },
     ]
   },

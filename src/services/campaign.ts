@@ -81,18 +81,23 @@ export interface ApiResponse<T> {
   data: T;
 }
 
-// Read (Get Campaigns)
-export const getCampaigns = async (page: number = 1, limit: number = 10): Promise<CampaignResponse> => {
-  const response = await api.get<CampaignResponse>('/campaigns', {
-    params: { page, limit },
+// Read (Get Available Campaigns)
+export const getCampaigns = async (search?: string, limit: number = 10, page: number = 1): Promise<CampaignResponse> => {
+  const params: { search?: string; limit?: number; page?: number } = {};
+  if (search) params.search = search;
+  params.limit = limit;
+  params.page = page;
+
+  const response = await api.get<CampaignResponse>('/campaigns/available', {
+    params,
   });
   return response.data;
 };
 
-export const useGetCampaigns = (page: number = 1, limit: number = 10) => {
+export const useGetCampaigns = (search?: string, limit: number = 10, page: number = 1) => {
   return useQuery({
-    queryKey: ['campaigns', page, limit],
-    queryFn: () => getCampaigns(page, limit),
+    queryKey: ['campaigns', search, page, limit],
+    queryFn: () => getCampaigns(search, limit, page),
   });
 };
 
