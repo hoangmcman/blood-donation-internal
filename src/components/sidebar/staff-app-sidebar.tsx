@@ -12,7 +12,6 @@ import {
   FlagTriangleRight,
   Droplet,
   FilePlus,
-  ClipboardList,
 } from "lucide-react"
 import {
   Sidebar,
@@ -73,10 +72,10 @@ const data = {
       roles: ["doctor"], // Only for doctor
     },
     {
-      title: "Mẫu kết quả hiến máu",
-      url: "/staff/donation-result-templates",
-      icon: ClipboardList,
-      roles: ["doctor"], // Only for doctor
+      title: "Lịch sử đơn vị máu",
+      url: "/staff/bloodunithistory",
+      icon: FileClock,
+      roles: ["doctor"],
     },
   ],
   navClouds: [
@@ -149,12 +148,11 @@ function NavMain({ items }: { items: typeof data.navMain }) {
 export function StaffAppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
   const { userId } = useAuthContext()
   const subRole = getUserSubRole(userId)
-  
   // Filter navMain items based on user sub-role
   const filteredNavMain = data.navMain.filter((item) => item.roles.includes(subRole))
 
   return (
-    <Sidebar collapsible="offcanvas" {...props}>
+    <Sidebar collapsible="offcanvas" className="flex flex-col h-full" {...props}>
       <SidebarHeader>
         <SidebarMenu>
           <SidebarMenuItem>
@@ -170,10 +168,10 @@ export function StaffAppSidebar({ ...props }: React.ComponentProps<typeof Sideba
           </SidebarMenuItem>
         </SidebarMenu>
       </SidebarHeader>
-      <SidebarContent>
+      <SidebarContent className="flex-1">
         <NavMain items={filteredNavMain} />
       </SidebarContent>
-      <SidebarFooter>
+      <SidebarFooter className="mt-auto">
         <StaffNavUser />
       </SidebarFooter>
     </Sidebar>
