@@ -24,6 +24,22 @@ export interface Item {
   options?: Option[];
 }
 
+export interface CreateItemPayload {
+  type: string;
+  label: string;
+  description: string;
+  placeholder?: string;
+  defaultValue?: string;
+  sortOrder: number;
+  minValue?: number;
+  maxValue?: number;
+  minLength?: number;
+  maxLength?: number;
+  isRequired: boolean;
+  pattern?: string;
+  options?: { label: string }[];
+}
+
 export interface DonationResultTemplate {
   id: string;
   name: string;
@@ -66,14 +82,14 @@ export interface CreateDonationResultTemplatePayload {
   name: string;
   description: string;
   active: boolean;
-  items: Item[];
+  items: CreateItemPayload[];
 }
 
 export interface UpdateDonationResultTemplatePayload {
   name?: string;
   description?: string;
   active?: boolean;
-  items?: Item[];
+  items?: Partial<Item>[];
 }
 
 export interface ApiResponse<T> {
@@ -262,19 +278,5 @@ export const useDeleteDonationResultTemplateOption = () => {
     onSuccess: () => {
       // Invalidate related queries if needed
     },
-  });
-};
-
-// Validate Template Usage
-export const validateTemplateUsage = async (id: string): Promise<ApiResponse<boolean>> => {
-  const response = await api.get<ApiResponse<boolean>>(`/donation-result-templates/${id}/validate-usage`);
-  return response.data;
-};
-
-export const useValidateTemplateUsage = (id: string) => {
-  return useQuery({
-    queryKey: ['validateTemplateUsage', id],
-    queryFn: () => validateTemplateUsage(id),
-    enabled: !!id,
   });
 };

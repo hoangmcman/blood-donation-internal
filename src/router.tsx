@@ -10,15 +10,16 @@ import BloodStock from './pages/admin/BloodStock'
 import AdminProfile from './pages/admin/AdminProfile'
 
 import StaffLayout from './layouts/StaffLayout'
-import Donation from '@/pages/staff/Donation'
-import BloodUnitManagement from '@/pages/staff/BloodUnitManagement'
-import StaffCampaignList from '@/pages/staff/StaffCampaignList'
-import StaffProfile from './pages/staff/StaffProfile'
-import BloodUnitHistory from './pages/staff/BloodUnitHistory'
-import DonationRequestList from './pages/staff/DonationRequestList'
+import Donation from '@/pages/doctor/Donation'
+import BloodUnitManagement from '@/pages/doctor/BloodUnitManagement'
+import StaffCampaignList from '@/pages/doctor/StaffCampaignList'
+import StaffProfile from './pages/doctor/StaffProfile'
+import BloodUnitHistory from './pages/doctor/BloodUnitHistory'
+import DonationRequestList from './pages/doctor/DonationRequestList'
 
-import BlogList from '@/pages/doctor/BlogList'
-import EmergencyRequestList from '@/pages/doctor/EmergencyRequestList'
+import BlogList from '@/pages/staff/BlogList'
+import EmergencyRequestList from '@/pages/staff/EmergencyRequestList'
+import DonationResultTemplateList from './pages/staff/DonationResultTemplateList'
 
 export const router = createBrowserRouter([
   {
@@ -92,6 +93,9 @@ export const router = createBrowserRouter([
       {
         path: 'bloodunitmanagement',
         element: <BloodUnitManagement />
+      },{
+        path: 'donationresulttemplate',
+        element: <DonationResultTemplateList />
       },
       {
         path: 'bloodunithistory',

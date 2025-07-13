@@ -60,11 +60,17 @@ const data = {
       roles: ["staff"], // Only for staff (replacing Lịch sử đơn vị máu)
     },
     {
+      title: "Quản lý mẫu đơn hiến máu",
+      url: "/staff/donationresulttemplate",
+      icon: Newspaper,
+      roles: ["staff"],
+    },
+    {
       title: "Danh sách bài viết",
       url: "/staff/bloglist",
       icon: Newspaper,
       roles: ["staff"], // Only for staff
-    },
+    },   
     {
       title: "Mẫu yêu cầu hiến máu",
       url: "/staff/donation-request-template",
