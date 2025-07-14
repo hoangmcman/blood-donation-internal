@@ -20,6 +20,7 @@ import DonationRequestList from './pages/doctor/DonationRequestList'
 import BlogList from '@/pages/staff/BlogList'
 import EmergencyRequestList from '@/pages/staff/EmergencyRequestList'
 import DonationResultTemplateList from './pages/staff/DonationResultTemplateList'
+import StaffDonationResultList from './pages/doctor/StaffDonationResultList'
 
 export const router = createBrowserRouter([
   {
@@ -93,9 +94,14 @@ export const router = createBrowserRouter([
       {
         path: 'bloodunitmanagement',
         element: <BloodUnitManagement />
-      },{
+      },
+      {
         path: 'donationresulttemplate',
         element: <DonationResultTemplateList />
+      },
+      {
+        path: 'donationresultlist',
+        element: <StaffDonationResultList donationResultId={''} />
       },
       {
         path: 'bloodunithistory',

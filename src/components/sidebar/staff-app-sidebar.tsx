@@ -73,7 +73,7 @@ const data = {
     },   
     {
       title: "Mẫu yêu cầu hiến máu",
-      url: "/staff/donation-request-template",
+      url: "/staff/donationresultlist",
       icon: FilePlus,
       roles: ["doctor"], // Only for doctor
     },
