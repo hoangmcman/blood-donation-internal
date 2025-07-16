@@ -32,7 +32,7 @@ export interface DonationRequest {
   amount: number;
   note: string;
   appointmentDate: string;
-  currentStatus: 'pending' | 'completed' | 'failed';
+  currentStatus: "pending" | "rejected" | "completed" | "result_returned" | "appointment_confirmed" | "appointment_cancelled" | "appointment_absent" | "customer_cancelled" | "customer_checked_in";
   createdAt: string;
   updatedAt: string;
 }

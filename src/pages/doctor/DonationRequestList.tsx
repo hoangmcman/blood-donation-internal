@@ -55,7 +55,7 @@ interface DonationRequest {
   amount: number
   note: string
   appointmentDate: string
-  currentStatus: "pending" | "completed" | "failed"
+  currentStatus: "pending" | "rejected" | "completed" | "result_returned" | "appointment_confirmed" | "appointment_cancelled" | "appointment_absent" | "customer_cancelled" | "customer_checked_in"
   createdAt: string
   updatedAt: string
 }
@@ -68,6 +68,13 @@ interface DonationRequestActionsProps {
 function DonationRequestActions({ donationRequest, onOpenDialog }: DonationRequestActionsProps) {
   const memberId = donationRequest.donor.id
   const memberName = `${donationRequest.donor.firstName} ${donationRequest.donor.lastName}`
+  const isDisabledStatus = [
+    "pending",
+    "rejected",
+    "appointment_cancelled",
+    "appointment_absent",
+    "customer_cancelled",
+  ].includes(donationRequest.currentStatus)
 
   return (
     <DropdownMenu>
@@ -78,7 +85,10 @@ function DonationRequestActions({ donationRequest, onOpenDialog }: DonationReque
         </Button>
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end">
-        <DropdownMenuItem onClick={() => onOpenDialog(memberId, memberName)}>
+        <DropdownMenuItem
+          onClick={() => !isDisabledStatus && onOpenDialog(memberId, memberName)}
+          disabled={isDisabledStatus}
+        >
           Tạo đơn vị máu
         </DropdownMenuItem>
       </DropdownMenuContent>
@@ -135,8 +145,15 @@ export default function DonationRequestList() {
               return "bg-yellow-100 text-yellow-700"
             case "completed":
               return "bg-green-100 text-green-700"
-            case "failed":
+            case "rejected":
+            case "appointment_cancelled":
+            case "appointment_absent":
+            case "customer_cancelled":
               return "bg-red-100 text-red-700"
+            case "appointment_confirmed":
+              return "bg-blue-100 text-blue-700"
+            case "customer_checked_in":
+              return "bg-purple-100 text-purple-700"
             default:
               return "bg-gray-100 text-gray-700"
           }
@@ -145,7 +162,13 @@ export default function DonationRequestList() {
           <Badge className={getStatusColor(status)}>
             {status === "pending" ? "Đang chờ" :
              status === "completed" ? "Hoàn thành" :
-             status === "failed" ? "Thất bại" : status.charAt(0).toUpperCase() + status.slice(1)}
+             status === "rejected" ? "Bị từ chối" :
+             status === "appointment_cancelled" ? "Hẹn hủy" :
+             status === "appointment_absent" ? "Vắng hẹn" :
+             status === "customer_cancelled" ? "Khách hủy" :
+             status === "appointment_confirmed" ? "Hẹn xác nhận" :
+             status === "customer_checked_in" ? "Khách đã đến" :
+             status.charAt(0).toUpperCase() + status.slice(1)}
           </Badge>
         )
       },
