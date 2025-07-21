@@ -12,15 +12,15 @@ export interface Item {
   type: string;
   label: string;
   description: string;
-  placeholder: string;
-  defaultValue: string;
+  placeholder?: string;
+  defaultValue?: string;
   sortOrder: number;
   minValue?: number;
   maxValue?: number;
   minLength?: number;
   maxLength?: number;
   isRequired: boolean;
-  pattern: string;
+  pattern?: string;
   options?: Option[];
 }
 
@@ -174,15 +174,22 @@ export const useDeleteDonationResultTemplate = () => {
 };
 
 // Donation Result Template Item CRUD Operations
-export const createDonationResultTemplateItem = async (templateId: string, payload: Item): Promise<ApiResponse<Item>> => {
-  const response = await api.post<ApiResponse<Item>>(`/donation-result-templates/${templateId}/items`, payload);
+export const createDonationResultTemplateItem = async (
+  templateId: string,
+  payload: CreateItemPayload
+): Promise<ApiResponse<Item>> => {
+  const response = await api.post<ApiResponse<Item>>(
+    `/donation-result-templates/${templateId}/items`,
+    payload
+  );
   return response.data;
 };
 
 export const useCreateDonationResultTemplateItem = () => {
   const queryClient = useQueryClient();
   return useMutation({
-    mutationFn: (variables: { templateId: string; payload: Item }) =>
+    // Đổi payload sang CreateItemPayload
+    mutationFn: (variables: { templateId: string; payload: CreateItemPayload }) =>
       createDonationResultTemplateItem(variables.templateId, variables.payload),
     onSuccess: (_, variables) => {
       queryClient.invalidateQueries({ queryKey: ['donationResultTemplate', variables.templateId] });

@@ -28,20 +28,24 @@ interface UpdateDonationRequestDialogProps {
 }
 
 const formSchema = z.object({
-  status: z.enum(["pending", "rejected", "completed", "result_returned", "appointment_confirmed", "appointment_cancelled", "appointment_absent"], { required_error: "Trạng thái là bắt buộc" }),
+  status: z.enum(["pending", "rejected", "completed", "result_returned", "appointment_confirmed", "appointment_cancelled", "appointment_absent", "customer_cancelled", "customer_checked_in"], { required_error: "Trạng thái là bắt buộc" }),
   appointmentDate: z.string().optional(),
   note: z.string().optional(),
 })
 
-const VALID_STATUSES = [
-  "pending",
-  "rejected",
-  "completed",
-  "result_returned",
-  "appointment_confirmed",
-  "appointment_cancelled",
-  "appointment_absent",
-] as const;
+type Status = z.infer<typeof formSchema>["status"]
+
+const VALID_TRANSITIONS: Record<Status, Status[]> = {
+  "pending": ["rejected", "appointment_confirmed", "customer_cancelled"],
+  "appointment_confirmed": ["appointment_cancelled", "customer_checked_in"],
+  "appointment_cancelled": [],
+  "customer_cancelled": [],
+  "completed": ["result_returned"],
+  "rejected": [],
+  "result_returned": [],
+  "appointment_absent": [],
+  "customer_checked_in": ["completed"],
+}
 
 export default function UpdateDonationRequestDialog({
   open,
@@ -51,7 +55,7 @@ export default function UpdateDonationRequestDialog({
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: {
-      status: "pending", // Default to "pending" as initial state
+      status: "pending",
       appointmentDate: "",
       note: "",
     },
@@ -62,11 +66,11 @@ export default function UpdateDonationRequestDialog({
 
   useEffect(() => {
     if (donationData) {
-      const validStatus = VALID_STATUSES.includes(donationData.currentStatus as any)
-        ? donationData.currentStatus
+      const validStatus = ["pending", "rejected", "completed", "result_returned", "appointment_confirmed", "appointment_cancelled", "appointment_absent", "customer_cancelled", "customer_checked_in"].includes(donationData.currentStatus)
+        ? (donationData.currentStatus as Status)
         : "pending";
       form.reset({
-        status: validStatus as typeof VALID_STATUSES[number],
+        status: validStatus,
         appointmentDate: donationData.appointmentDate
           ? new Date(donationData.appointmentDate).toISOString()
           : "",
@@ -76,6 +80,14 @@ export default function UpdateDonationRequestDialog({
   }, [donationData, form])
 
   const onSubmit = (values: z.infer<typeof formSchema>) => {
+    const currentStatus = donationData?.currentStatus as Status || "pending";
+    const isValidTransition = VALID_TRANSITIONS[currentStatus].includes(values.status);
+
+    if (!isValidTransition) {
+      toast.error("Trạng thái không hợp lệ theo luồng quy trình. Vui lòng kiểm tra lại!");
+      return;
+    }
+
     mutate(
       { id: donationId, statusData: values },
       {

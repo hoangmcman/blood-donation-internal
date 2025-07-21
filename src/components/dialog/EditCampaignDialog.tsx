@@ -20,13 +20,6 @@ import {
 } from "@/components/ui/form"
 import { Input } from "@/components/ui/input"
 import { Textarea } from "@/components/ui/textarea"
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select"
 import { toast } from "sonner"
 import { useUpdateCampaign } from "@/services/campaign"
 
@@ -38,9 +31,6 @@ const formSchema = z.object({
   banner: z.string().url("Định dạng URL không hợp lệ"),
   location: z.string().min(1, "Địa điểm là bắt buộc"),
   limitDonation: z.number().min(1, "Giới hạn quyên góp phải ít nhất là 1"),
-  status: z.enum(["active", "not_started", "ended"], {
-    errorMap: () => ({ message: "Trạng thái phải là Hoạt động, Chưa bắt đầu, hoặc đã kết thúc" }),
-  }),
   bloodCollectionDate: z.string().min(1, "Ngày thu thập máu là bắt buộc"),
 });
 
@@ -56,7 +46,6 @@ interface EditCampaignDialogProps {
     banner?: string
     location?: string
     limitDonation?: number
-    status?: string
     bloodCollectionDate?: string
   }
 }
@@ -72,9 +61,6 @@ export function EditCampaignDialog({ open, onOpenChange, campaign }: EditCampaig
       banner: campaign?.banner || "",
       location: campaign?.location || "",
       limitDonation: campaign?.limitDonation || 0,
-      status: campaign.status && ["active", "not_started", "ended"].includes(campaign.status)
-        ? (campaign.status as "active" | "not_started" | "ended")
-        : undefined,
       bloodCollectionDate: campaign.bloodCollectionDate?.split('T')[0] || "",
     },
   })
@@ -118,28 +104,6 @@ export function EditCampaignDialog({ open, onOpenChange, campaign }: EditCampaig
                   <FormControl>
                     <Input {...field} />
                   </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-            <FormField
-              control={form.control}
-              name="status"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Trạng thái</FormLabel>
-                  <Select onValueChange={field.onChange} defaultValue={field.value}>
-                    <FormControl>
-                      <SelectTrigger>
-                        <SelectValue placeholder="Chọn trạng thái" />
-                      </SelectTrigger>
-                    </FormControl>
-                    <SelectContent>
-                      <SelectItem value="active">Hoạt động</SelectItem>
-                      <SelectItem value="not_started">Chưa bắt đầu</SelectItem>
-                      <SelectItem value="ended">Đã kết thúc</SelectItem>
-                    </SelectContent>
-                  </Select>
                   <FormMessage />
                 </FormItem>
               )}

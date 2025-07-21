@@ -20,13 +20,6 @@ import {
 } from "@/components/ui/form"
 import { Input } from "@/components/ui/input"
 import { Textarea } from "@/components/ui/textarea"
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select"
 import { toast } from "sonner"
 import { useCreateCampaign } from "../../services/campaign"
 
@@ -38,9 +31,6 @@ const formSchema = z.object({
   banner: z.string().url("Định dạng URL không hợp lệ"),
   location: z.string().min(1, "Địa điểm là bắt buộc"),
   limitDonation: z.number().min(1, "Giới hạn quyên góp phải ít nhất là 1"),
-  status: z.enum(["active", "not_started", "ended"], {
-    errorMap: () => ({ message: "Trạng thái phải là Hoạt động, Chưa bắt đầu, hoặc Đã kết thúc" }),
-  }),
   bloodCollectionDate: z.string().min(1, "Ngày thu thập máu là bắt buộc"),
 });
 
@@ -60,7 +50,6 @@ export function CreateCampaignDialog({ open, onOpenChange }: CreateCampaignDialo
       banner: "",
       location: "",
       limitDonation: 0,
-      status: "active",
       bloodCollectionDate: "",
     },
   })
@@ -78,8 +67,20 @@ export function CreateCampaignDialog({ open, onOpenChange }: CreateCampaignDialo
       toast.error("Ngày thu thập máu phải cách ngày bắt đầu ít nhất 1 tuần và sau ngày kết thúc ít nhất 3 ngày");
       return;
     }
+
+    // Determine status based on current date
+    const currentDate = new Date();
+    let status: "not_started" | "active" | "ended";
+    if (currentDate < start) {
+      status = "not_started";
+    } else if (!values.endDate || (currentDate >= start && currentDate <= end)) {
+      status = "active";
+    } else {
+      status = "ended";
+    }
+
     try {
-      await createMutation.mutateAsync(values)
+      await createMutation.mutateAsync({ ...values, status })
       toast.success("Tạo chiến dịch thành công")
       onOpenChange(false)
     } catch (error) {
@@ -104,28 +105,6 @@ export function CreateCampaignDialog({ open, onOpenChange }: CreateCampaignDialo
                   <FormControl>
                     <Input {...field} />
                   </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-            <FormField
-              control={form.control}
-              name="status"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Trạng thái</FormLabel>
-                  <Select onValueChange={field.onChange} defaultValue={field.value}>
-                    <FormControl>
-                      <SelectTrigger>
-                        <SelectValue placeholder="Chọn trạng thái" />
-                      </SelectTrigger>
-                    </FormControl>
-                    <SelectContent>
-                      <SelectItem value="active">Hoạt động</SelectItem>
-                      <SelectItem value="not_started">Chưa bắt đầu</SelectItem>
-                      <SelectItem value="ended">Đã kết thúc</SelectItem>
-                    </SelectContent>
-                  </Select>
                   <FormMessage />
                 </FormItem>
               )}
