@@ -27,7 +27,6 @@ const formSchema = z.object({
   bloodVolume: z.number().min(1, { message: "Dung tích máu phải lớn hơn 0" }),
   remainingVolume: z.number().min(0, { message: "Dung tích còn lại phải ít nhất là 0" }),
   expiredDate: z.string().min(1, { message: "Ngày hết hạn là bắt buộc" }),
-  status: z.enum(["available", "used", "expired", "damaged"], { required_error: "Trạng thái là bắt buộc" }),
 });
 
 interface CreateBloodUnitDialogProps {
@@ -37,7 +36,7 @@ interface CreateBloodUnitDialogProps {
   memberName: string;
 }
 
-export default function CreateBloodUnitDialog({ open, onOpenChange, memberId, memberName }: CreateBloodUnitDialogProps) {
+export default function CreateBloodUnitDialog({ open, onOpenChange, memberId }: CreateBloodUnitDialogProps) {
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: {
@@ -46,7 +45,6 @@ export default function CreateBloodUnitDialog({ open, onOpenChange, memberId, me
       bloodVolume: 0,
       remainingVolume: 0,
       expiredDate: "",
-      status: "available",
     },
   });
 
@@ -61,7 +59,6 @@ export default function CreateBloodUnitDialog({ open, onOpenChange, memberId, me
         bloodVolume: values.bloodVolume,
         remainingVolume: values.remainingVolume,
         expiredDate: values.expiredDate,
-        status: values.status,
       },
       {
         onSuccess: () => {
@@ -158,31 +155,7 @@ export default function CreateBloodUnitDialog({ open, onOpenChange, memberId, me
                   <FormMessage />
                 </FormItem>
               )}
-            />
-            <FormField
-              control={form.control}
-              name="status"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Trạng thái</FormLabel>
-                  <FormControl>
-                    <select {...field} className="w-full p-2 border rounded">
-                      <option value="available">Có sẵn</option>
-                      <option value="used">Đã sử dụng</option>
-                      <option value="expired">Hết hạn</option>
-                      <option value="damaged">Hư hỏng</option>
-                    </select>
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-            <FormItem>
-              <FormLabel>Thành viên</FormLabel>
-              <div className="p-2 border rounded bg-gray-100 text-sm">
-                {memberName} (ID: {memberId})
-              </div>
-            </FormItem>
+            />           
             <Button type="submit">Tạo đơn vị máu</Button>
           </form>
         </Form>

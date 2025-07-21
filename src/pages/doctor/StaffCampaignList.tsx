@@ -163,8 +163,12 @@ export default function StaffCampaignList() {
     Number(pagination.pageSize)
   )
 
+  const filteredData = data?.data.data.filter(campaign => 
+    campaign.status.toLowerCase() !== "not_started" && campaign.status.toLowerCase() !== "ended"
+  ) || [];
+
   const table = useReactTable({
-    data: data?.data.data || [],
+    data: filteredData,
     columns,
     state: {
       sorting,

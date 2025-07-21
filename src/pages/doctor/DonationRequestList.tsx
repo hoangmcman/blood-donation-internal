@@ -68,13 +68,6 @@ interface DonationRequestActionsProps {
 function DonationRequestActions({ donationRequest, onOpenDialog }: DonationRequestActionsProps) {
   const memberId = donationRequest.donor.id
   const memberName = `${donationRequest.donor.firstName} ${donationRequest.donor.lastName}`
-  const isDisabledStatus = [
-    "pending",
-    "rejected",
-    "appointment_cancelled",
-    "appointment_absent",
-    "customer_cancelled",
-  ].includes(donationRequest.currentStatus)
 
   return (
     <DropdownMenu>
@@ -86,8 +79,7 @@ function DonationRequestActions({ donationRequest, onOpenDialog }: DonationReque
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end">
         <DropdownMenuItem
-          onClick={() => !isDisabledStatus && onOpenDialog(memberId, memberName)}
-          disabled={isDisabledStatus}
+          onClick={() => onOpenDialog(memberId, memberName)}
         >
           Tạo đơn vị máu
         </DropdownMenuItem>
@@ -200,8 +192,12 @@ export default function DonationRequestList() {
     Number(pagination.pageIndex) + 1
   )
 
+  const filteredData = data?.data.data.filter(donationRequest => 
+    !["pending", "rejected", "appointment_cancelled", "appointment_absent", "customer_cancelled"].includes(donationRequest.currentStatus)
+  ) || [];
+
   const table = useReactTable({
-    data: data?.data.data || [],
+    data: filteredData,
     columns,
     state: {
       sorting,

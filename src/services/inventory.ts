@@ -50,7 +50,6 @@ export interface CreateBloodUnitPayload {
   bloodVolume: number;
   remainingVolume: number;
   expiredDate: string;
-  status: string;
 }
 
 export interface ApiResponse<T> {
@@ -125,7 +124,7 @@ export const useGetBloodUnitById = (id: string) => {
 };
 
 export const createBloodUnit = async (payload: CreateBloodUnitPayload): Promise<ApiResponse<BloodUnit>> => {
-  const response = await api.post<ApiResponse<BloodUnit>>('/inventory/blood-units', payload);
+  const response = await api.post<ApiResponse<BloodUnit>>('/inventory/blood-units/whole-blood', payload);
   return response.data;
 };
 
