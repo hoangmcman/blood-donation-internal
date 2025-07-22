@@ -95,6 +95,37 @@ export interface CreateBloodUnitActionPayload {
   newValue: string;
 }
 
+// New Interface for Separated Blood Components
+export interface SeparatedBloodUnit {
+  id: string;
+  member: Member;
+  bloodType: BloodType;
+  bloodVolume: number;
+  bloodComponentType: string;
+  remainingVolume: number;
+  isSeparated: boolean;
+  parentWholeBlood: string;
+  expiredDate: string;
+  status: string;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface SeparateComponentsPayload {
+  wholeBloodUnitId: string;
+  redCellsVolume: number;
+  plasmaVolume: number;
+  plateletsVolume: number;
+  expiredDate: string;
+}
+
+export interface SeparateComponentsResponse {
+  wholeBloodUnit: SeparatedBloodUnit;
+  redCellsUnit: SeparatedBloodUnit;
+  plasmaUnit: SeparatedBloodUnit;
+  plateletsUnit: SeparatedBloodUnit;
+}
+
 // BloodUnit CRUD Operations
 export const getBloodUnits = async (page: number = 1, limit: number = 10): Promise<BloodUnitResponse> => {
   const response = await api.get<BloodUnitResponse>('/inventory/blood-units', {
@@ -241,6 +272,22 @@ export const useDeleteBloodUnitAction = () => {
     mutationFn: deleteBloodUnitAction,
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['bloodUnitActions'] });
+    },
+  });
+};
+
+// New Separate Components Operation
+export const separateComponents = async (payload: SeparateComponentsPayload): Promise<ApiResponse<SeparateComponentsResponse>> => {
+  const response = await api.post<ApiResponse<SeparateComponentsResponse>>('/inventory/blood-units/separate-components', payload);
+  return response.data;
+};
+
+export const useSeparateComponents = () => {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: separateComponents,
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['bloodUnits'] });
     },
   });
 };

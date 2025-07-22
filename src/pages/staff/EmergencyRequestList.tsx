@@ -36,9 +36,9 @@ import {
 } from "@/components/ui/dropdown-menu"
 import { MoreHorizontal } from "lucide-react"
 import {
-  useGetEmergencyRequestLogs,
+  useGetEmergencyRequests,
 } from "../../services/emergencyrequest"
-import type { EmergencyRequestLog } from "../../services/emergencyrequest"
+import type { EmergencyRequest } from "../../services/emergencyrequest"
 import { ViewEmergencyRequestDetail } from "@/components/dialog/ViewEmergencyRequestDetail"
 import { ApproveEmergencyRequestDialog } from "@/components/dialog/ApproveEmergencyRequestDialog"
 import { RejectEmergencyRequestDialog } from "@/components/dialog/RejectEmergencyRequestDialog"
@@ -51,45 +51,45 @@ export default function EmergencyRequestList() {
     pageIndex: 0,
     pageSize: 10,
   })
-  const [selectedLogId, setSelectedLogId] = React.useState<string | null>(null)
+  const [selectedRequestId, setSelectedRequestId] = React.useState<string | null>(null)
   const [approveRequestId, setApproveRequestId] = React.useState<string | null>(null)
   const [rejectRequestId, setRejectRequestId] = React.useState<string | null>(null)
   const [rejectAllOpen, setRejectAllOpen] = React.useState<boolean>(false)
 
-  const { data } = useGetEmergencyRequestLogs(
+  const { data, isLoading, error } = useGetEmergencyRequests(
     Number(pagination.pageIndex) + 1,
     Number(pagination.pageSize)
   )
 
-  const bloodGroups = [...new Set(data?.data.data.map((log) => log.emergencyRequest.bloodType.group) || [])]
-  const bloodRhs = [...new Set(data?.data.data.map((log) => log.emergencyRequest.bloodType.rh) || [])]
-  const bloodTypeComponents = [...new Set(data?.data.data.map((log) => log.emergencyRequest.bloodTypeComponent) || [])]
+  const bloodGroups = [...new Set(data?.data.data.map((request) => request.bloodType.group) || [])]
+  const bloodRhs = [...new Set(data?.data.data.map((request) => request.bloodType.rh) || [])]
+  const bloodTypeComponents = [...new Set(data?.data.data.map((request) => request.bloodTypeComponent) || [])]
 
-  const columns: ColumnDef<EmergencyRequestLog, any>[] = [
+  const columns: ColumnDef<EmergencyRequest, any>[] = [
     {
-      accessorFn: (row) => row.emergencyRequest.id,
+      accessorFn: (row) => row.id,
       id: "requestId",
       header: "Mã yêu cầu",
-      cell: ({ row }) => row.original.emergencyRequest.id,
-    } as ColumnDef<EmergencyRequestLog, string>,
+      cell: ({ row }) => row.original.id,
+    } as ColumnDef<EmergencyRequest, string>,
     {
-      accessorFn: (row) => row.emergencyRequest.bloodType.group,
+      accessorFn: (row) => row.bloodType.group,
       id: "bloodGroup",
       header: "Nhóm máu",
-      cell: ({ row }) => row.original.emergencyRequest.bloodType.group,
-    } as ColumnDef<EmergencyRequestLog, string>,
+      cell: ({ row }) => row.original.bloodType.group,
+    } as ColumnDef<EmergencyRequest, string>,
     {
-      accessorFn: (row) => row.emergencyRequest.bloodType.rh,
+      accessorFn: (row) => row.bloodType.rh,
       id: "bloodRh",
       header: "Rh",
-      cell: ({ row }) => row.original.emergencyRequest.bloodType.rh,
-    } as ColumnDef<EmergencyRequestLog, string>,
+      cell: ({ row }) => row.original.bloodType.rh,
+    } as ColumnDef<EmergencyRequest, string>,
     {
-      accessorFn: (row) => row.emergencyRequest.status,
+      accessorFn: (row) => row.status,
       id: "requestStatus",
       header: "Trạng thái",
       cell: ({ row }) => {
-        const status = row.original.emergencyRequest.status
+        const status = row.original.status
         const getStatusColor = (status: string) => {
           switch (status.toLowerCase()) {
             case "approved": return "bg-green-100 text-green-700"
@@ -106,34 +106,34 @@ export default function EmergencyRequestList() {
           </Badge>
         )
       },
-    } as ColumnDef<EmergencyRequestLog, string>,
+    } as ColumnDef<EmergencyRequest, string>,
     {
-      accessorFn: (row) => row.emergencyRequest.requestedBy,
+      accessorFn: (row) => row.requestedBy.email,
       id: "requestedBy",
       header: "Yêu cầu bởi",
-      cell: ({ row }) => row.original.emergencyRequest.requestedBy,
-    } as ColumnDef<EmergencyRequestLog, string>,
+      cell: ({ row }) => row.original.requestedBy.email,
+    } as ColumnDef<EmergencyRequest, string>,
     {
-      accessorKey: "note",
+      accessorKey: "description",
       header: "Ghi chú",
-      cell: ({ row }) => row.original.note,
+      cell: ({ row }) => row.original.description || "Không có",
     },
     {
       id: "actions",
       header: "Hành động",
       cell: ({ row }) => {
-        const logId = row.original.id
+        const requestId = row.original.id
 
         const handleShowDetail = () => {
-          setSelectedLogId(logId)
+          setSelectedRequestId(requestId)
         }
 
         const handleApprove = () => {
-          setApproveRequestId(logId)
+          setApproveRequestId(requestId)
         }
 
         const handleReject = () => {
-          setRejectRequestId(logId)
+          setRejectRequestId(requestId)
         }
 
         return (
@@ -160,13 +160,8 @@ export default function EmergencyRequestList() {
     },
   ]
 
-  const { data: fullData, isLoading, error } = useGetEmergencyRequestLogs(
-    Number(pagination.pageIndex) + 1,
-    Number(pagination.pageSize)
-  )
-
   const table = useReactTable({
-    data: fullData?.data.data || [],
+    data: data?.data.data || [],
     columns,
     state: {
       sorting,
@@ -181,7 +176,7 @@ export default function EmergencyRequestList() {
     getSortedRowModel: getSortedRowModel(),
     getRowId: (row) => row.id,
     manualPagination: true,
-    pageCount: fullData?.data.meta.totalPages,
+    pageCount: data?.data.meta.totalPages,
   })
 
   if (isLoading) {
@@ -199,7 +194,7 @@ export default function EmergencyRequestList() {
         <div className="flex items-center gap-2">
           <Button
             onClick={() => setRejectAllOpen(true)}
-            disabled={!(fullData?.data.data.some((log) => log.emergencyRequest.status.toLowerCase() === "pending"))}
+            disabled={!(data?.data.data.some((request) => request.status.toLowerCase() === "pending"))}
           >
             Từ chối tất cả
           </Button>
@@ -283,9 +278,9 @@ export default function EmergencyRequestList() {
       </div>
       <Toaster />
       <ViewEmergencyRequestDetail
-        open={!!selectedLogId}
-        onOpenChange={(open) => setSelectedLogId(open ? selectedLogId : null)}
-        logId={selectedLogId || ""}
+        open={!!selectedRequestId}
+        onOpenChange={(open) => setSelectedRequestId(open ? selectedRequestId : null)}
+        requestId={selectedRequestId || ""}
       />
       <ApproveEmergencyRequestDialog
         open={!!approveRequestId}

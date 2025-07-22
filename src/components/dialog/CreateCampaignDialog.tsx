@@ -100,7 +100,7 @@ export function CreateCampaignDialog({ open, onOpenChange }: CreateCampaignDialo
               control={form.control}
               name="name"
               render={({ field }) => (
-                <FormItem>
+                <FormItem className="col-span-2">
                   <FormLabel>Tên chiến dịch</FormLabel>
                   <FormControl>
                     <Input {...field} />

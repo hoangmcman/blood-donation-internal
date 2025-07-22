@@ -166,7 +166,7 @@ export function StaffAppSidebar({ ...props }: React.ComponentProps<typeof Sideba
               asChild
               className="data-[slot=sidebar-menu-button]:!p-1.5"
             >
-              <Link to="/" className="flex items-center space-x-2">
+              <Link to="#" className="flex items-center space-x-2">
                 <Cross className="h-5 w-5 text-red-500" />
                 <span className="text-base font-semibold">BloodLink</span>
               </Link>

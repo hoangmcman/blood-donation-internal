@@ -80,6 +80,7 @@ export default function UpdateDonationRequestDialog({
   }, [donationData, form])
 
   const onSubmit = (values: z.infer<typeof formSchema>) => {
+    console.log("Submitting values:", values);
     const currentStatus = donationData?.currentStatus as Status || "pending";
     const isValidTransition = VALID_TRANSITIONS[currentStatus].includes(values.status);
 
@@ -126,6 +127,7 @@ export default function UpdateDonationRequestDialog({
                       <option value="appointment_confirmed">Xác nhận request</option>
                       <option value="appointment_cancelled">Hủy lịch hẹn</option>
                       <option value="appointment_absent">Vắng mặt vào ngày lấy máu</option>
+                      
                     </select>
                   </FormControl>
                   <FormMessage />

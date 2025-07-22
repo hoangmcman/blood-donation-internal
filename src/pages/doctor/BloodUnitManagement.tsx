@@ -128,7 +128,7 @@ export default function BloodUnitList() {
           size="sm"
           onClick={() => setIsDialogOpen(row.original.id)}
         >
-          Cập nhật
+          Cập nhật máu theo thành phần
         </Button>
       ),
     },

@@ -66,8 +66,8 @@ interface DonationRequestActionsProps {
 }
 
 function DonationRequestActions({ donationRequest, onOpenDialog }: DonationRequestActionsProps) {
-  const memberId = donationRequest.donor.id
-  const memberName = `${donationRequest.donor.firstName} ${donationRequest.donor.lastName}`
+  const requestId = donationRequest.id; // lấy id của donation request
+  const memberName = `${donationRequest.donor.firstName} ${donationRequest.donor.lastName}`;
 
   return (
     <DropdownMenu>
@@ -79,13 +79,13 @@ function DonationRequestActions({ donationRequest, onOpenDialog }: DonationReque
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end">
         <DropdownMenuItem
-          onClick={() => onOpenDialog(memberId, memberName)}
+          onClick={() => onOpenDialog(requestId, memberName)} // đổi sang requestId
         >
           Tạo đơn vị máu
         </DropdownMenuItem>
       </DropdownMenuContent>
     </DropdownMenu>
-  )
+  );
 }
 
 export default function DonationRequestList() {
@@ -153,14 +153,14 @@ export default function DonationRequestList() {
         return (
           <Badge className={getStatusColor(status)}>
             {status === "pending" ? "Đang chờ" :
-             status === "completed" ? "Hoàn thành" :
-             status === "rejected" ? "Bị từ chối" :
-             status === "appointment_cancelled" ? "Hẹn hủy" :
-             status === "appointment_absent" ? "Vắng hẹn" :
-             status === "customer_cancelled" ? "Khách hủy" :
-             status === "appointment_confirmed" ? "Hẹn xác nhận" :
-             status === "customer_checked_in" ? "Khách đã đến" :
-             status.charAt(0).toUpperCase() + status.slice(1)}
+              status === "completed" ? "Hoàn thành" :
+                status === "rejected" ? "Bị từ chối" :
+                  status === "appointment_cancelled" ? "Hẹn hủy" :
+                    status === "appointment_absent" ? "Vắng hẹn" :
+                      status === "customer_cancelled" ? "Khách hủy" :
+                        status === "appointment_confirmed" ? "Hẹn xác nhận" :
+                          status === "customer_checked_in" ? "Khách đã đến" :
+                            status.charAt(0).toUpperCase() + status.slice(1)}
           </Badge>
         )
       },
@@ -192,7 +192,7 @@ export default function DonationRequestList() {
     Number(pagination.pageIndex) + 1
   )
 
-  const filteredData = data?.data.data.filter(donationRequest => 
+  const filteredData = data?.data.data.filter(donationRequest =>
     !["pending", "rejected", "appointment_cancelled", "appointment_absent", "customer_cancelled"].includes(donationRequest.currentStatus)
   ) || [];
 
@@ -308,7 +308,7 @@ export default function DonationRequestList() {
       <CreateBloodUnitDialog
         open={isDialogOpen}
         onOpenChange={setIsDialogOpen}
-        memberId={selectedMember.id}
+        memberId={selectedMember.id} // thực ra là donationRequestId
         memberName={selectedMember.name}
       />
     </div>

@@ -11,7 +11,13 @@ export interface EmergencyRequest {
   id: string;
   createdAt: string;
   updatedAt: string;
-  requestedBy: string;
+  requestedBy: {
+    id: string;
+    createdAt: string;
+    updatedAt: string;
+    email: string;
+    role: string;
+  };
   bloodUnit: string | null;
   usedVolume: number;
   requiredVolume: number;
@@ -87,6 +93,21 @@ export interface EmergencyRequestLogByIdResponse {
   data: EmergencyRequestLog;
 }
 
+export interface EmergencyRequestByIdResponse {
+  success: boolean;
+  message: string;
+  data: EmergencyRequest;
+}
+
+export interface EmergencyRequestResponse {
+  success: boolean;
+  message: string;
+  data: {
+    data: EmergencyRequest[];
+    meta: PaginationMeta;
+  };
+}
+
 export interface ApiResponse<T> {
   success: boolean;
   message: string;
@@ -109,7 +130,6 @@ export interface RejectAllEmergencyRequestsPayload {
   bloodTypeComponent?: string
   rejectionReason: string
 }
-
 
 // EmergencyRequest CRUD Operations
 export const getEmergencyRequestLogs = async (page: number = 1, limit: number = 10): Promise<EmergencyRequestLogResponse> => {
@@ -136,6 +156,33 @@ export const useGetEmergencyRequestLogById = (id: string) => {
     queryKey: ['emergencyRequestLog', id],
     queryFn: () => getEmergencyRequestLogById(id),
     enabled: !!id,
+  });
+};
+
+export const getEmergencyRequestById = async (id: string): Promise<EmergencyRequestByIdResponse> => {
+  const response = await api.get<EmergencyRequestByIdResponse>(`/emergency-requests/${id}`);
+  return response.data;
+};
+
+export const useGetEmergencyRequestById = (id: string) => {
+  return useQuery({
+    queryKey: ['emergencyRequest', id],
+    queryFn: () => getEmergencyRequestById(id),
+    enabled: !!id,
+  });
+};
+
+export const getEmergencyRequests = async (page: number = 1, limit: number = 10): Promise<EmergencyRequestResponse> => {
+  const response = await api.get<EmergencyRequestResponse>('/emergency-requests', {
+    params: { page, limit },
+  });
+  return response.data;
+};
+
+export const useGetEmergencyRequests = (page: number = 1, limit: number = 10) => {
+  return useQuery({
+    queryKey: ['emergencyRequests', page, limit],
+    queryFn: () => getEmergencyRequests(page, limit),
   });
 };
 

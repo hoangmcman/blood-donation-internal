@@ -14,7 +14,7 @@ import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "
 import { Textarea } from "@/components/ui/textarea"
 import { toast } from "sonner"
 import { useRejectEmergencyRequest } from "../../services/emergencyrequest"
-import { useGetEmergencyRequestLogById } from "../../services/emergencyrequest"
+import { useGetEmergencyRequestById } from "../../services/emergencyrequest"
 
 const formSchema = z.object({
   rejectionReason: z.string().min(1, { message: "Lý do từ chối là bắt buộc" }),
@@ -27,7 +27,7 @@ interface RejectEmergencyRequestDialogProps {
 }
 
 export function RejectEmergencyRequestDialog({ open, onOpenChange, requestId }: RejectEmergencyRequestDialogProps) {
-  const { data, isLoading, error } = useGetEmergencyRequestLogById(requestId)
+  const { data, isLoading, error } = useGetEmergencyRequestById(requestId)
   const { mutate } = useRejectEmergencyRequest()
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
@@ -37,7 +37,7 @@ export function RejectEmergencyRequestDialog({ open, onOpenChange, requestId }: 
   })
 
   const handleReject = (values: z.infer<typeof formSchema>) => {
-    if (data?.data?.emergencyRequest) {
+    if (data?.data) {
       mutate(
         { id: requestId, payload: values },
         {
