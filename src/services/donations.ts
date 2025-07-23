@@ -1,260 +1,249 @@
-import api from '../config/api';
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { ApiResponse } from "@/interfaces/base";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+
+import api from "../config/api";
 
 export interface DonationRequest {
-  id: string;
-  createdAt: string;
-  updatedAt: string;
-  campaign: {
-    id: string;
-    name: string;
-    status: string;
-    description?: string;
-    startDate?: string;
-    endDate?: string;
-    banner?: string;
-    location?: string;
-    limitDonation?: number;
-    bloodCollectionDate?: string;
-  };
-  donor: {
-    id: string;
-    firstName: string;
-    lastName: string;
-    bloodType?: {
-      group: string;
-      rh: string;
-    };
-    phone?: string;
-    wardName?: string;
-    districtName?: string;
-    provinceName?: string;
-  };
-  currentStatus: string;
-  appointmentDate: string;
+	id: string;
+	createdAt: string;
+	updatedAt: string;
+	campaign: {
+		id: string;
+		name: string;
+		status: string;
+		description?: string;
+		startDate?: string;
+		endDate?: string;
+		banner?: string;
+		location?: string;
+		limitDonation?: number;
+		bloodCollectionDate?: string;
+	};
+	donor: {
+		id: string;
+		firstName: string;
+		lastName: string;
+		bloodType?: {
+			group: string;
+			rh: string;
+		};
+		phone?: string;
+		wardName?: string;
+		districtName?: string;
+		provinceName?: string;
+	};
+	currentStatus: string;
+	appointmentDate: string;
 }
 
 export interface Option {
-  id: string;
-  label: string;
+	id: string;
+	label: string;
 }
 
 export interface Item {
-  id: string;
-  type: string;
-  label: string;
-  description: string;
-  placeholder?: string;
-  defaultValue?: string;
-  sortOrder: number;
-  minValue?: number;
-  maxValue?: number;
-  minLength?: number;
-  maxLength?: number;
-  isRequired: boolean;
-  pattern?: string;
-  options?: Option[];
+	id: string;
+	type: string;
+	label: string;
+	description: string;
+	placeholder?: string;
+	defaultValue?: string;
+	sortOrder: number;
+	minValue?: number;
+	maxValue?: number;
+	minLength?: number;
+	maxLength?: number;
+	isRequired: boolean;
+	pattern?: string;
+	options?: Option[];
 }
 
 export interface DonationResultTemplate {
-  id: string;
-  name: string;
-  description: string;
-  active: boolean;
-  createdAt: string;
-  updatedAt: string;
-  createdBy: {
-    id: string;
-    firstName: string;
-    lastName: string;
-  };
-  updatedBy: {
-    id: string;
-    firstName: string;
-    lastName: string;
-  };
-  items: Item[];
+	id: string;
+	name: string;
+	description: string;
+	active: boolean;
+	createdAt: string;
+	updatedAt: string;
+	createdBy: {
+		id: string;
+		firstName: string;
+		lastName: string;
+	};
+	updatedBy: {
+		id: string;
+		firstName: string;
+		lastName: string;
+	};
+	items: Item[];
 }
 
 export interface BloodTestResult {
-  [key: string]: string; // Dynamic properties for additionalProp1, additionalProp2, etc.
+	[key: string]: string; // Dynamic properties for additionalProp1, additionalProp2, etc.
 }
 
 export interface DonationResult {
-  id: string;
-  campaignDonation: {
-    id: string;
-    currentStatus: string;
-    donor: {
-      id: string;
-      firstName: string;
-      lastName: string;
-    };
-  };
-  bloodTestResults: BloodTestResult;
-  template: DonationResultTemplate;
-  resultDate: string;
-  notes?: string;
-  processedBy: {
-    id: string;
-    firstName: string;
-    lastName: string;
-  };
-  createdAt: string;
-  updatedAt: string;
+	id: string;
+	campaignDonation: {
+		id: string;
+		currentStatus: string;
+		donor: {
+			id: string;
+			firstName: string;
+			lastName: string;
+		};
+	};
+	bloodTestResults: BloodTestResult;
+	template: DonationResultTemplate;
+	resultDate: string;
+	notes?: string;
+	processedBy: {
+		id: string;
+		firstName: string;
+		lastName: string;
+	};
+	createdAt: string;
+	updatedAt: string;
 }
 
 export interface UpdateDonationResultPayload {
-  templateId: string;
-  bloodTestResults: BloodTestResult;
-  resultDate?: string;
-  notes?: string;
+	templateId: string;
+	bloodTestResults: BloodTestResult;
+	resultDate?: string;
+	notes?: string;
 }
 
 export interface UpdateStatusRequest {
-  status: string;
-  appointmentDate?: string;
-  note?: string;
-}
-
-export interface ApiResponse<T> {
-  success: boolean;
-  message: string;
-  data: T;
+	status: string;
+	appointmentDate?: string;
+	note?: string;
 }
 
 export interface PaginatedDonationResponse {
-  items: DonationRequest[];
-  total: number;
+	items: DonationRequest[];
+	total: number;
 }
 
 export interface PaginatedDonationResultResponse {
-  items: DonationResult[];
-  meta: {
-    page: number;
-    limit: number;
-    total: number;
-    totalPages: number;
-    hasNextPage: boolean;
-    hasPreviousPage: boolean;
-  };
+	items: DonationResult[];
+	meta: {
+		page: number;
+		limit: number;
+		total: number;
+		totalPages: number;
+		hasNextPage: boolean;
+		hasPreviousPage: boolean;
+	};
 }
 
 // Existing Donation Request APIs
 export const useGetDonationRequests = (status?: string) => {
-  return useQuery<DonationRequest[], Error>({
-    queryKey: ['donationRequests', status],
-    queryFn: async () => {
-      const { data }: { data: ApiResponse<PaginatedDonationResponse> } = await api.get(
-        '/donations/requests',
-        {
-          params: status ? { status } : {},
-        }
-      );
-      return data.data.items;
-    },
-  });
+	return useQuery<DonationRequest[], Error>({
+		queryKey: ["donationRequests", status],
+		queryFn: async () => {
+			const { data }: { data: ApiResponse<PaginatedDonationResponse> } = await api.get(
+				"/donations/requests",
+				{
+					params: status ? { status } : {},
+				}
+			);
+			return data.data.items;
+		},
+	});
 };
 
 export const useGetDonationRequestById = (id: string) => {
-  return useQuery<DonationRequest, Error>({
-    queryKey: ['donationRequest', id],
-    queryFn: async () => {
-      const { data }: { data: ApiResponse<DonationRequest> } = await api.get(
-        `/donations/requests/${id}`
-      );
-      return data.data;
-    },
-    enabled: !!id,
-  });
+	return useQuery<DonationRequest, Error>({
+		queryKey: ["donationRequest", id],
+		queryFn: async () => {
+			const { data }: { data: ApiResponse<DonationRequest> } = await api.get(
+				`/donations/requests/${id}`
+			);
+			return data.data;
+		},
+		enabled: !!id,
+	});
 };
 
 export const useUpdateDonationStatus = () => {
-  const queryClient = useQueryClient();
+	const queryClient = useQueryClient();
 
-  return useMutation({
-    mutationFn: async ({
-      id,
-      statusData,
-    }: {
-      id: string;
-      statusData: UpdateStatusRequest;
-    }) => {
-      const { data }: { data: ApiResponse<DonationRequest> } = await api.patch(
-        `/donations/requests/${id}/status`,
-        statusData
-      );
-      return data.data;
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['donationRequests'] });
-    },
-  });
+	return useMutation({
+		mutationFn: async ({ id, statusData }: { id: string; statusData: UpdateStatusRequest }) => {
+			const { data }: { data: ApiResponse<DonationRequest> } = await api.patch(
+				`/donations/requests/${id}/status`,
+				statusData
+			);
+			return data.data;
+		},
+		onSuccess: () => {
+			queryClient.invalidateQueries({ queryKey: ["donationRequests"] });
+		},
+	});
 };
 
 // New Donation Result APIs
 export const useGetDonationResults = (page: number = 1, limit: number = 10) => {
-  return useQuery<PaginatedDonationResultResponse, Error>({
-    queryKey: ['donationResults', page, limit],
-    queryFn: async () => {
-      const { data }: { data: ApiResponse<PaginatedDonationResultResponse> } = await api.get(
-        '/donations/results',
-        {
-          params: { page, limit },
-        }
-      );
-      return data.data;
-    },
-  });
+	return useQuery<PaginatedDonationResultResponse, Error>({
+		queryKey: ["donationResults", page, limit],
+		queryFn: async () => {
+			const { data }: { data: ApiResponse<PaginatedDonationResultResponse> } = await api.get(
+				"/donations/results",
+				{
+					params: { page, limit },
+				}
+			);
+			return data.data;
+		},
+	});
 };
 
 export const useGetDonationResultById = (id: string) => {
-  return useQuery<DonationResult, Error>({
-    queryKey: ['donationResult', id],
-    queryFn: async () => {
-      const { data }: { data: ApiResponse<DonationResult> } = await api.get(
-        `/donations/results/${id}`
-      );
-      return data.data;
-    },
-    enabled: !!id,
-  });
+	return useQuery<DonationResult, Error>({
+		queryKey: ["donationResult", id],
+		queryFn: async () => {
+			const { data }: { data: ApiResponse<DonationResult> } = await api.get(
+				`/donations/results/${id}`
+			);
+			return data.data;
+		},
+		enabled: !!id,
+	});
 };
 
 export const useUpdateDonationResult = () => {
-  const queryClient = useQueryClient();
+	const queryClient = useQueryClient();
 
-  return useMutation({
-    mutationFn: async ({
-      id,
-      updateData,
-    }: {
-      id: string;
-      updateData: UpdateDonationResultPayload;
-    }) => {
-      // Fetch the template snapshot based on templateId
-      const { data: templateResponse }: { data: ApiResponse<DonationResultTemplate> } = await api.get(
-        `/donation-result-templates/${updateData.templateId}`
-      );
-      const templateSnapshot = templateResponse.data;
+	return useMutation({
+		mutationFn: async ({
+			id,
+			updateData,
+		}: {
+			id: string;
+			updateData: UpdateDonationResultPayload;
+		}) => {
+			// Fetch the template snapshot based on templateId
+			const { data: templateResponse }: { data: ApiResponse<DonationResultTemplate> } =
+				await api.get(`/donation-result-templates/${updateData.templateId}`);
+			const templateSnapshot = templateResponse.data;
 
-      // Prepare payload with template snapshot and update blood test results
-      const payload = {
-        ...updateData,
-        template: templateSnapshot,
-        currentStatus: 'RESULT_RETURNED', // Automatically set status
-      };
+			// Prepare payload with template snapshot and update blood test results
+			const payload = {
+				...updateData,
+				template: templateSnapshot,
+				currentStatus: "RESULT_RETURNED", // Automatically set status
+			};
 
-      const { data }: { data: ApiResponse<DonationResult> } = await api.patch(
-        `/donations/results/${id}`,
-        payload
-      );
-      return data.data;
-    },
-    onSuccess: (data) => {
-      queryClient.invalidateQueries({ queryKey: ['donationResults'] });
-      queryClient.invalidateQueries({ queryKey: ['donationResult', data.id] });
-      queryClient.invalidateQueries({ queryKey: ['donationRequests'] }); // Invalidate requests if status changes affect them
-    },
-  });
+			const { data }: { data: ApiResponse<DonationResult> } = await api.patch(
+				`/donations/results/${id}`,
+				payload
+			);
+			return data.data;
+		},
+		onSuccess: (data) => {
+			queryClient.invalidateQueries({ queryKey: ["donationResults"] });
+			queryClient.invalidateQueries({ queryKey: ["donationResult", data.id] });
+			queryClient.invalidateQueries({ queryKey: ["donationRequests"] }); // Invalidate requests if status changes affect them
+		},
+	});
 };

@@ -1,236 +1,259 @@
-import api from '../config/api';
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { ApiResponse } from "@/interfaces/base";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+
+import api from "../config/api";
 
 // EmergencyRequest Interfaces
 export interface BloodType {
-  group: string;
-  rh: string;
+	group: string;
+	rh: string;
 }
 
 export interface EmergencyRequest {
-  id: string;
-  createdAt: string;
-  updatedAt: string;
-  requestedBy: {
-    id: string;
-    createdAt: string;
-    updatedAt: string;
-    email: string;
-    role: string;
-  };
-  bloodUnit: string | null;
-  usedVolume: number;
-  requiredVolume: number;
-  bloodType: BloodType;
-  bloodTypeComponent: string;
-  status: string;
-  description: string;
-  rejectionReason: string | null;
-  startDate: string;
-  endDate: string;
-  wardCode: string;
-  districtCode: string;
-  provinceCode: string;
-  wardName: string;
-  districtName: string;
-  provinceName: string;
-  longitude: string;
-  latitude: string;
+	id: string;
+	createdAt: string;
+	updatedAt: string;
+	requestedBy: {
+		id: string;
+		createdAt: string;
+		updatedAt: string;
+		email: string;
+		role: string;
+	};
+	bloodUnit: string | null;
+	usedVolume: number;
+	requiredVolume: number;
+	bloodType: BloodType;
+	bloodTypeComponent: string;
+	status: string;
+	description: string;
+	rejectionReason: string | null;
+	startDate: string;
+	endDate: string;
+	wardCode: string;
+	districtCode: string;
+	provinceCode: string;
+	wardName: string;
+	districtName: string;
+	provinceName: string;
+	longitude: string;
+	latitude: string;
 }
 
 export interface Staff {
-  id: string;
-  createdAt: string;
-  updatedAt: string;
-  account: string;
-  firstName: string;
-  lastName: string;
-  role: string;
+	id: string;
+	createdAt: string;
+	updatedAt: string;
+	account: string;
+	firstName: string;
+	lastName: string;
+	role: string;
 }
 
 export interface Account {
-  id: string;
-  createdAt: string;
-  updatedAt: string;
-  email: string;
-  role: string;
+	id: string;
+	createdAt: string;
+	updatedAt: string;
+	email: string;
+	role: string;
 }
 
 export interface EmergencyRequestLog {
-  id: string;
-  createdAt: string;
-  updatedAt: string;
-  emergencyRequest: EmergencyRequest;
-  staff: Staff | null;
-  account: Account | null;
-  status: string;
-  note: string;
-  previousValue: string;
-  newValue: string;
+	id: string;
+	createdAt: string;
+	updatedAt: string;
+	emergencyRequest: EmergencyRequest;
+	staff: Staff | null;
+	account: Account | null;
+	status: string;
+	note: string;
+	previousValue: string;
+	newValue: string;
 }
 
 export interface PaginationMeta {
-  page: number;
-  limit: number;
-  total: number;
-  totalPages: number;
-  hasNextPage: boolean;
-  hasPreviousPage: boolean;
+	page: number;
+	limit: number;
+	total: number;
+	totalPages: number;
+	hasNextPage: boolean;
+	hasPreviousPage: boolean;
 }
 
 export interface EmergencyRequestLogResponse {
-  success: boolean;
-  message: string;
-  data: {
-    data: EmergencyRequestLog[];
-    meta: PaginationMeta;
-  };
+	success: boolean;
+	message: string;
+	data: {
+		data: EmergencyRequestLog[];
+		meta: PaginationMeta;
+	};
 }
 
 export interface EmergencyRequestLogByIdResponse {
-  success: boolean;
-  message: string;
-  data: EmergencyRequestLog;
+	success: boolean;
+	message: string;
+	data: EmergencyRequestLog;
 }
 
 export interface EmergencyRequestByIdResponse {
-  success: boolean;
-  message: string;
-  data: EmergencyRequest;
+	success: boolean;
+	message: string;
+	data: EmergencyRequest;
 }
 
 export interface EmergencyRequestResponse {
-  success: boolean;
-  message: string;
-  data: {
-    data: EmergencyRequest[];
-    meta: PaginationMeta;
-  };
-}
-
-export interface ApiResponse<T> {
-  success: boolean;
-  message: string;
-  data: T;
+	success: boolean;
+	message: string;
+	data: {
+		data: EmergencyRequest[];
+		meta: PaginationMeta;
+	};
 }
 
 // Payload Interfaces
 export interface ApproveEmergencyRequestPayload {
-  bloodUnitId: string;
-  usedVolume: string;
+	bloodUnitId: string;
+	usedVolume: string;
 }
 
 export interface RejectEmergencyRequestPayload {
-  rejectionReason: string;
+	rejectionReason: string;
 }
 
 export interface RejectAllEmergencyRequestsPayload {
-  bloodGroup?: string
-  bloodRh?: string
-  bloodTypeComponent?: string
-  rejectionReason: string
+	bloodGroup?: string;
+	bloodRh?: string;
+	bloodTypeComponent?: string;
+	rejectionReason: string;
 }
 
 // EmergencyRequest CRUD Operations
-export const getEmergencyRequestLogs = async (page: number = 1, limit: number = 10): Promise<EmergencyRequestLogResponse> => {
-  const response = await api.get<EmergencyRequestLogResponse>('/emergency-requests/logs/all', {
-    params: { page, limit },
-  });
-  return response.data;
+export const getEmergencyRequestLogs = async (
+	page: number = 1,
+	limit: number = 10
+): Promise<EmergencyRequestLogResponse> => {
+	const response = await api.get<EmergencyRequestLogResponse>("/emergency-requests/logs/all", {
+		params: { page, limit },
+	});
+	return response.data;
 };
 
 export const useGetEmergencyRequestLogs = (page: number = 1, limit: number = 10) => {
-  return useQuery({
-    queryKey: ['emergencyRequestLogs', page, limit],
-    queryFn: () => getEmergencyRequestLogs(page, limit),
-  });
+	return useQuery({
+		queryKey: ["emergencyRequestLogs", page, limit],
+		queryFn: () => getEmergencyRequestLogs(page, limit),
+	});
 };
 
-export const getEmergencyRequestLogById = async (id: string): Promise<EmergencyRequestLogByIdResponse> => {
-  const response = await api.get<EmergencyRequestLogByIdResponse>(`/emergency-requests/logs/${id}`);
-  return response.data;
+export const getEmergencyRequestLogById = async (
+	id: string
+): Promise<EmergencyRequestLogByIdResponse> => {
+	const response = await api.get<EmergencyRequestLogByIdResponse>(`/emergency-requests/logs/${id}`);
+	return response.data;
 };
 
 export const useGetEmergencyRequestLogById = (id: string) => {
-  return useQuery({
-    queryKey: ['emergencyRequestLog', id],
-    queryFn: () => getEmergencyRequestLogById(id),
-    enabled: !!id,
-  });
+	return useQuery({
+		queryKey: ["emergencyRequestLog", id],
+		queryFn: () => getEmergencyRequestLogById(id),
+		enabled: !!id,
+	});
 };
 
-export const getEmergencyRequestById = async (id: string): Promise<EmergencyRequestByIdResponse> => {
-  const response = await api.get<EmergencyRequestByIdResponse>(`/emergency-requests/${id}`);
-  return response.data;
+export const getEmergencyRequestById = async (
+	id: string
+): Promise<EmergencyRequestByIdResponse> => {
+	const response = await api.get<EmergencyRequestByIdResponse>(`/emergency-requests/${id}`);
+	return response.data;
 };
 
 export const useGetEmergencyRequestById = (id: string) => {
-  return useQuery({
-    queryKey: ['emergencyRequest', id],
-    queryFn: () => getEmergencyRequestById(id),
-    enabled: !!id,
-  });
+	return useQuery({
+		queryKey: ["emergencyRequest", id],
+		queryFn: () => getEmergencyRequestById(id),
+		enabled: !!id,
+	});
 };
 
-export const getEmergencyRequests = async (page: number = 1, limit: number = 10): Promise<EmergencyRequestResponse> => {
-  const response = await api.get<EmergencyRequestResponse>('/emergency-requests', {
-    params: { page, limit },
-  });
-  return response.data;
+export const getEmergencyRequests = async (
+	page: number = 1,
+	limit: number = 10
+): Promise<EmergencyRequestResponse> => {
+	const response = await api.get<EmergencyRequestResponse>("/emergency-requests", {
+		params: { page, limit },
+	});
+	return response.data;
 };
 
 export const useGetEmergencyRequests = (page: number = 1, limit: number = 10) => {
-  return useQuery({
-    queryKey: ['emergencyRequests', page, limit],
-    queryFn: () => getEmergencyRequests(page, limit),
-  });
+	return useQuery({
+		queryKey: ["emergencyRequests", page, limit],
+		queryFn: () => getEmergencyRequests(page, limit),
+	});
 };
 
-export const approveEmergencyRequest = async (id: string, payload: ApproveEmergencyRequestPayload): Promise<ApiResponse<EmergencyRequestLog>> => {
-  const response = await api.patch<ApiResponse<EmergencyRequestLog>>(`/emergency-requests/${id}/approve`, payload);
-  return response.data;
+export const approveEmergencyRequest = async (
+	id: string,
+	payload: ApproveEmergencyRequestPayload
+): Promise<ApiResponse<EmergencyRequestLog>> => {
+	const response = await api.patch<ApiResponse<EmergencyRequestLog>>(
+		`/emergency-requests/${id}/approve`,
+		payload
+	);
+	return response.data;
 };
 
 export const useApproveEmergencyRequest = () => {
-  const queryClient = useQueryClient();
-  return useMutation({
-    mutationFn: (variables: { id: string; payload: ApproveEmergencyRequestPayload }) =>
-      approveEmergencyRequest(variables.id, variables.payload),
-    onSuccess: (_, variables) => {
-      queryClient.invalidateQueries({ queryKey: ['emergencyRequestLogs'] });
-      queryClient.invalidateQueries({ queryKey: ['emergencyRequestLog', variables.id] });
-    },
-  });
+	const queryClient = useQueryClient();
+	return useMutation({
+		mutationFn: (variables: { id: string; payload: ApproveEmergencyRequestPayload }) =>
+			approveEmergencyRequest(variables.id, variables.payload),
+		onSuccess: (_, variables) => {
+			queryClient.invalidateQueries({ queryKey: ["emergencyRequestLogs"] });
+			queryClient.invalidateQueries({ queryKey: ["emergencyRequestLog", variables.id] });
+		},
+	});
 };
 
-export const rejectEmergencyRequest = async (id: string, payload: RejectEmergencyRequestPayload): Promise<ApiResponse<EmergencyRequestLog>> => {
-  const response = await api.patch<ApiResponse<EmergencyRequestLog>>(`/emergency-requests/${id}/reject`, payload);
-  return response.data;
+export const rejectEmergencyRequest = async (
+	id: string,
+	payload: RejectEmergencyRequestPayload
+): Promise<ApiResponse<EmergencyRequestLog>> => {
+	const response = await api.patch<ApiResponse<EmergencyRequestLog>>(
+		`/emergency-requests/${id}/reject`,
+		payload
+	);
+	return response.data;
 };
 
 export const useRejectEmergencyRequest = () => {
-  const queryClient = useQueryClient();
-  return useMutation({
-    mutationFn: (variables: { id: string; payload: RejectEmergencyRequestPayload }) =>
-      rejectEmergencyRequest(variables.id, variables.payload),
-    onSuccess: (_, variables) => {
-      queryClient.invalidateQueries({ queryKey: ['emergencyRequestLogs'] });
-      queryClient.invalidateQueries({ queryKey: ['emergencyRequestLog', variables.id] });
-    },
-  });
+	const queryClient = useQueryClient();
+	return useMutation({
+		mutationFn: (variables: { id: string; payload: RejectEmergencyRequestPayload }) =>
+			rejectEmergencyRequest(variables.id, variables.payload),
+		onSuccess: (_, variables) => {
+			queryClient.invalidateQueries({ queryKey: ["emergencyRequestLogs"] });
+			queryClient.invalidateQueries({ queryKey: ["emergencyRequestLog", variables.id] });
+		},
+	});
 };
 
-export const rejectAllEmergencyRequests = async (payload: RejectAllEmergencyRequestsPayload): Promise<ApiResponse<EmergencyRequestLog[]>> => {
-  const response = await api.patch<ApiResponse<EmergencyRequestLog[]>>('/emergency-requests/reject-by-blood-type', payload);
-  return response.data;
+export const rejectAllEmergencyRequests = async (
+	payload: RejectAllEmergencyRequestsPayload
+): Promise<ApiResponse<EmergencyRequestLog[]>> => {
+	const response = await api.patch<ApiResponse<EmergencyRequestLog[]>>(
+		"/emergency-requests/reject-by-blood-type",
+		payload
+	);
+	return response.data;
 };
 
 export const useRejectAllEmergencyRequests = () => {
-  const queryClient = useQueryClient();
-  return useMutation({
-    mutationFn: (payload: RejectAllEmergencyRequestsPayload) => rejectAllEmergencyRequests(payload),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['emergencyRequestLogs'] });
-    },
-  });
+	const queryClient = useQueryClient();
+	return useMutation({
+		mutationFn: (payload: RejectAllEmergencyRequestsPayload) => rejectAllEmergencyRequests(payload),
+		onSuccess: () => {
+			queryClient.invalidateQueries({ queryKey: ["emergencyRequestLogs"] });
+		},
+	});
 };
