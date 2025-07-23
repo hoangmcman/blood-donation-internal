@@ -8,58 +8,71 @@ import {
   DialogTitle,
   DialogFooter,
 } from "@/components/ui/dialog"
-import { Badge } from "@/components/ui/badge"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
 import { Button } from "@/components/ui/button"
 import { toast } from "sonner"
-import { useGetDonationResultTemplateById } from "../../services/donationresulttemplates"
+import {
+  RadioGroup,
+  RadioGroupItem,
+} from "@/components/ui/radio-group"
+import { useGetDonationRequestById } from "../../services/donations"
 import { useUpdateDonationResult } from "../../services/donations"
-import { type Item, type UpdateDonationResultPayload } from "../../services/donations"
+import { type UpdateDonationResultPayload } from "../../services/donations"
 
 interface UpdateDonationResultDialogProps {
   open: boolean
   onOpenChange: (open: boolean) => void
-  templateId: string
   donationResultId: string
 }
 
-export default function UpdateDonationResultDialog({ open, onOpenChange, templateId, donationResultId }: UpdateDonationResultDialogProps) {
-  const { data, isLoading, error } = useGetDonationResultTemplateById(templateId)
+export default function UpdateDonationResultDialog({
+  open,
+  onOpenChange,
+  donationResultId,
+}: UpdateDonationResultDialogProps) {
+  const {
+    data: requestData,
+    isLoading: isRequestLoading,
+    error: requestError,
+  } = useGetDonationRequestById(donationResultId)
+
   const updateDonationResult = useUpdateDonationResult()
+
   const [formData, setFormData] = React.useState<UpdateDonationResultPayload>({
-    templateId,
-    bloodTestResults: {},
-    resultDate: new Date().toISOString().split('T')[0],
-    notes: '',
+    volumeMl: 0,
+    bloodgroup: "",
+    bloodrh: "",
+    notes: "",
+    rejectReason: "",
+    status: "completed",
   })
 
   React.useEffect(() => {
-    if (data?.data) {
-      const initialBloodTestResults = data.data.items.reduce((acc, item) => ({
-        ...acc,
-        [item.id]: item.defaultValue || '',
-      }), {} as { [key: string]: string })
-      setFormData(prev => ({
+    if (requestData) {
+      const donorBloodType = requestData.donor?.bloodType
+      setFormData((prev) => ({
         ...prev,
-        bloodTestResults: initialBloodTestResults,
+        bloodGroup: donorBloodType?.group || "",
+        bloodRh: donorBloodType?.rh || "",
       }))
     }
-  }, [data])
+  }, [requestData])
 
-  const handleInputChange = (itemId: string, value: string) => {
-    setFormData(prev => ({
+  const handleInputChange = (
+    field: keyof UpdateDonationResultPayload,
+    value: string
+  ) => {
+    setFormData((prev) => ({
       ...prev,
-      bloodTestResults: {
-        ...prev.bloodTestResults,
-        [itemId]: value,
-      },
+      [field]:
+        field === "volumeMl" ? Number(value) : value, // ✅ ép kiểu số cho volumeMl
     }))
   }
 
   const handleNotesChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
-    setFormData(prev => ({
+    setFormData((prev) => ({
       ...prev,
       notes: e.target.value,
     }))
@@ -78,7 +91,7 @@ export default function UpdateDonationResultDialog({ open, onOpenChange, templat
     }
   }
 
-  if (isLoading) {
+  if (isRequestLoading) {
     return (
       <Dialog open={open} onOpenChange={onOpenChange}>
         <DialogContent className="sm:max-w-[800px]">
@@ -91,20 +104,20 @@ export default function UpdateDonationResultDialog({ open, onOpenChange, templat
     )
   }
 
-  if (error || !data?.success || !data?.data) {
+  if (requestError || !requestData) {
     return (
       <Dialog open={open} onOpenChange={onOpenChange}>
         <DialogContent className="sm:max-w-[800px]">
           <DialogHeader>
             <DialogTitle>Cập nhật Kết quả Hiến máu</DialogTitle>
           </DialogHeader>
-          <div>Lỗi: {error?.message || "Không thể tải chi tiết mẫu"}</div>
+          <div>
+            Lỗi: {requestError?.message || "Không thể tải chi tiết yêu cầu"}
+          </div>
         </DialogContent>
       </Dialog>
     )
   }
-
-  const template = data.data
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -116,87 +129,79 @@ export default function UpdateDonationResultDialog({ open, onOpenChange, templat
           <div className="space-y-4">
             <div className="grid grid-cols-2 gap-4">
               <div>
-                <Label className="text-sm font-medium">Tên mẫu</Label>
-                <p className="text-sm text-gray-900">{template.name}</p>
+                <Label>Lượng máu đã được hiến (ml)?</Label>
+                <Input
+                  type="number"
+                  placeholder="Nhập lượng máu (ml)"
+                  value={formData.volumeMl}
+                  onChange={(e) =>
+                    handleInputChange("volumeMl", e.target.value)
+                  }
+                  required
+                />
               </div>
               <div>
-                <Label className="text-sm font-medium">Mô tả</Label>
-                <p className="text-sm text-gray-900">{template.description}</p>
+                <Label>Nhóm máu (A, B, AB, O)</Label>
+                <Input type="text" value={formData.bloodgroup} disabled />
               </div>
               <div>
-                <Label className="text-sm font-medium">Trạng thái</Label>
-                <p className="text-sm text-gray-900">
-                  <Badge className={template.active ? "bg-green-100 text-green-700" : "bg-red-100 text-red-700"}>
-                    {template.active ? "Hoạt động" : "Không hoạt động"}
-                  </Badge>
-                </p>
+                <Label>Yếu tố Rh (Dương tính hay âm tính)</Label>
+                <Input type="text" value={formData.bloodrh} disabled />
               </div>
               <div>
-                <Label className="text-sm font-medium">Số mục</Label>
-                <p className="text-sm text-gray-900">{template.items.length}</p>
+                <Label>Ghi chú (nếu có)</Label>
+                <Textarea
+                  value={formData.notes}
+                  onChange={handleNotesChange}
+                  placeholder="Nhập ghi chú nếu có"
+                />
+              </div>
+              {formData.status === "rejected" && (
+                <div>
+                  <Label>Lý do từ chối</Label>
+                  <Input
+                    type="text"
+                    value={formData.rejectReason}
+                    onChange={(e) =>
+                      handleInputChange("rejectReason", e.target.value)
+                    }
+                    placeholder="Nhập lý do từ chối"
+                  />
+                </div>
+              )}
+              <div>
+                <Label>Trạng thái kết quả</Label>
+                <RadioGroup
+                  value={formData.status}
+                  onValueChange={(value) =>
+                    handleInputChange("status", value)
+                  }
+                  className="flex space-x-4"
+                >
+                  <div className="flex items-center space-x-2">
+                    <RadioGroupItem value="completed" id="completed" />
+                    <Label htmlFor="completed">Hoàn thành</Label>
+                  </div>
+                  <div className="flex items-center space-x-2">
+                    <RadioGroupItem value="rejected" id="rejected" />
+                    <Label htmlFor="rejected">Bị từ chối</Label>
+                  </div>
+                </RadioGroup>
               </div>
             </div>
-          </div>
-          <div className="space-y-4">
-            <h3 className="text-lg font-medium">Kết quả xét nghiệm máu</h3>
-            {template.items.map((item: Item) => (
-              <div key={item.id} className="space-y-2">
-                <Label>{item.label} {item.isRequired && <span className="text-red-500">*</span>}</Label>
-                {item.type === 'select' && item.options ? (
-                  <select
-                    className="w-full rounded-md border p-2"
-                    value={formData.bloodTestResults[item.id] || ''}
-                    onChange={(e) => handleInputChange(item.id, e.target.value)}
-                    required={item.isRequired}
-                  >
-                    <option value="">Chọn một tùy chọn</option>
-                    {item.options.map((option) => (
-                      <option key={option.id} value={option.label}>
-                        {option.label}
-                      </option>
-                    ))}
-                  </select>
-                ) : (
-                  <Input
-                    type={item.type === 'number' ? 'number' : 'text'}
-                    placeholder={item.placeholder}
-                    value={formData.bloodTestResults[item.id] || ''}
-                    onChange={(e) => handleInputChange(item.id, e.target.value)}
-                    required={item.isRequired}
-                    min={item.minValue}
-                    max={item.maxValue}
-                    minLength={item.minLength}
-                    maxLength={item.maxLength}
-                    pattern={item.pattern}
-                  />
-                )}
-                <p className="text-sm text-gray-500">{item.description}</p>
-              </div>
-            ))}
-          </div>
-          <div className="space-y-2">
-            <Label>Ngày kết quả</Label>
-            <Input
-              type="date"
-              value={formData.resultDate}
-              onChange={(e) => setFormData(prev => ({ ...prev, resultDate: e.target.value }))}
-            />
-          </div>
-          <div className="space-y-2">
-            <Label>Ghi chú</Label>
-            <Textarea
-              value={formData.notes || ''}
-              onChange={handleNotesChange}
-              placeholder="Nhập ghi chú nếu có"
-            />
           </div>
         </div>
         <DialogFooter>
           <Button variant="outline" onClick={() => onOpenChange(false)}>
             Hủy
           </Button>
-          <Button onClick={handleSubmit} disabled={updateDonationResult.isPending}>
-            {updateDonationResult.isPending ? 'Đang cập nhật...' : 'Cập nhật'}
+          <Button
+            onClick={handleSubmit}
+            disabled={updateDonationResult.isPending}
+          >
+            {updateDonationResult.isPending
+              ? "Đang cập nhật..."
+              : "Cập nhật"}
           </Button>
         </DialogFooter>
       </DialogContent>

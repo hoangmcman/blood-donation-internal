@@ -18,6 +18,8 @@ import {
   ChevronsRightIcon,
   MoreVerticalIcon,
 } from "lucide-react"
+import { useParams } from "react-router-dom"
+import { Toaster } from "@/components/ui/sonner"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import {
@@ -34,17 +36,39 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table"
-import { Toaster } from "@/components/ui/sonner"
-import { useGetDonationResultTemplates } from "../../services/donationresulttemplates"
-import { type DonationResultTemplate, type Item } from "../../services/donations"
-import UpdateDonationResultDialog from "../../components/dialog/UpdateDonationResultDialog"
+import {
+  useGetDonationRequests,
+} from "../../services/campaign"
+import CreateBloodUnitDialog from "../../components/dialog/CreateBloodUnitDialog"
 
-interface DonationResultTemplateActionsProps {
-  template: DonationResultTemplate
-  onOpenDialog: (templateId: string) => void
+interface DonationRequest {
+  id: string
+  donor: {
+    id: string
+    firstName: string
+    lastName: string
+  }
+  campaign: {
+    id: string
+    name: string
+  }
+  amount: number
+  note: string
+  appointmentDate: string
+  currentStatus: "pending" | "rejected" | "completed" | "result_returned" | "appointment_confirmed" | "appointment_cancelled" | "appointment_absent" | "customer_cancelled" | "customer_checked_in"
+  createdAt: string
+  updatedAt: string
 }
 
-function DonationResultTemplateActions({ template, onOpenDialog }: DonationResultTemplateActionsProps) {
+interface DonationRequestActionsProps {
+  donationRequest: DonationRequest
+  onOpenDialog: (memberId: string, memberName: string) => void
+}
+
+function DonationRequestActions({ donationRequest, onOpenDialog }: DonationRequestActionsProps) {
+  const requestId = donationRequest.id; // lấy id của donation request
+  const memberName = `${donationRequest.donor.firstName} ${donationRequest.donor.lastName}`;
+
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
@@ -54,15 +78,18 @@ function DonationResultTemplateActions({ template, onOpenDialog }: DonationResul
         </Button>
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end">
-        <DropdownMenuItem onClick={() => onOpenDialog(template.id)}>
-          Xem và Cập nhật
+        <DropdownMenuItem
+          onClick={() => onOpenDialog(requestId, memberName)} // đổi sang requestId
+        >
+          Tạo đơn vị máu
         </DropdownMenuItem>
       </DropdownMenuContent>
     </DropdownMenu>
-  )
+  );
 }
 
-export default function StaffDonationResultList({ donationResultId }: { donationResultId: string }) {
+export default function StaffDonationResultList({ }: { donationResultId: string }) {
+  const { id } = useParams<{ id: string }>()
   const [sorting, setSorting] = React.useState<SortingState>([])
   const [columnVisibility, setColumnVisibility] = React.useState<VisibilityState>({})
   const [pagination, setPagination] = React.useState({
@@ -70,61 +97,80 @@ export default function StaffDonationResultList({ donationResultId }: { donation
     pageSize: 10,
   })
   const [isDialogOpen, setIsDialogOpen] = React.useState(false)
-  const [selectedTemplateId, setSelectedTemplateId] = React.useState<string>("")
+  const [selectedMember, setSelectedMember] = React.useState<{ id: string; name: string }>({
+    id: "",
+    name: "",
+  })
 
-  const { data, isLoading, error } = useGetDonationResultTemplates(
-    pagination.pageIndex + 1,
-    pagination.pageSize
-  )
-
-  const columns: ColumnDef<DonationResultTemplate>[] = [
+  const columns: ColumnDef<DonationRequest>[] = [
     {
-      accessorKey: "name",
-      header: "Tên mẫu",
+      accessorKey: "donor.firstName",
+      header: "Tên người hiến",
+      cell: ({ row }: { row: any }) => row.original.donor.firstName,
     },
     {
-      accessorKey: "description",
-      header: "Mô tả",
+      accessorKey: "donor.lastName",
+      header: "Họ người hiến",
+      cell: ({ row }: { row: any }) => row.original.donor.lastName,
     },
     {
-      accessorKey: "active",
+      accessorKey: "amount",
+      header: "Số lượng",
+    },
+    {
+      accessorKey: "note",
+      header: "Ghi chú",
+    },
+    {
+      accessorKey: "appointmentDate",
+      header: "Ngày hẹn",
+      cell: ({ row }: { row: any }) => new Date(row.getValue("appointmentDate")).toLocaleDateString('vi-VN'),
+    },
+    {
+      accessorKey: "currentStatus",
       header: "Trạng thái",
-      cell: ({ row }) => (
-        <Badge className={row.getValue("active") ? "bg-green-100 text-green-700" : "bg-red-100 text-red-700"}>
-          {row.getValue("active") ? "Hoạt động" : "Không hoạt động"}
-        </Badge>
-      ),
+      cell: ({ row }: { row: any }) => {
+        const status = row.getValue("currentStatus") as string
+        return (
+          <Badge className={status.toLowerCase() === "completed" ? "bg-green-100 text-green-700" : "bg-gray-100 text-gray-700"}>
+            {status.toLowerCase() === "completed" ? "Hoàn thành" : "Không hợp lệ"}
+          </Badge>
+        )
+      },
     },
     {
       accessorKey: "createdAt",
       header: "Ngày tạo",
-      cell: ({ row }) => new Date(row.getValue("createdAt")).toLocaleDateString('vi-VN'),
-    },
-    {
-      accessorKey: "items",
-      header: "Số mục",
-      cell: ({ row }) => {
-        const items = row.getValue("items") as Item[] | undefined
-        return items ? items.length : 0
-      },
+      cell: ({ row }: { row: any }) => new Date(row.getValue("createdAt")).toLocaleDateString('vi-VN'),
     },
     {
       id: "actions",
       header: "Hành động",
-      cell: ({ row }) => (
-        <DonationResultTemplateActions
-          template={row.original}
-          onOpenDialog={(templateId) => {
-            setSelectedTemplateId(templateId)
+      cell: ({ row }: { row: any }) => (
+        <DonationRequestActions
+          donationRequest={row.original}
+          onOpenDialog={(memberId, memberName) => {
             setIsDialogOpen(true)
+            setSelectedMember({ id: memberId, name: memberName })
           }}
         />
       ),
     },
   ]
 
+  const { data, isLoading, error } = useGetDonationRequests(
+    id || "",
+    undefined,
+    Number(pagination.pageSize),
+    Number(pagination.pageIndex) + 1
+  )
+
+  const filteredData = data?.data.data.filter(donationRequest =>
+    donationRequest.currentStatus === "completed"
+  ) || [];
+
   const table = useReactTable({
-    data: data?.data?.data || [],
+    data: filteredData,
     columns,
     state: {
       sorting,
@@ -153,7 +199,7 @@ export default function StaffDonationResultList({ donationResultId }: { donation
   return (
     <div className="w-full p-4">
       <div className="flex justify-between items-center mb-4">
-        <h1 className="text-2xl font-bold">Danh sách mẫu kết quả hiến máu</h1>
+        <h1 className="text-2xl font-bold">Xem yêu cầu hiến máu để cập nhật kết quả</h1>
       </div>
       <div className="rounded-md border">
         <Table>
@@ -184,7 +230,7 @@ export default function StaffDonationResultList({ donationResultId }: { donation
             ) : (
               <TableRow>
                 <TableCell colSpan={columns.length} className="h-24 text-center">
-                  Không tìm thấy mẫu kết quả hiến máu nào.
+                  Không tìm thấy yêu cầu hiến máu nào.
                 </TableCell>
               </TableRow>
             )}
@@ -232,11 +278,11 @@ export default function StaffDonationResultList({ donationResultId }: { donation
         </div>
       </div>
       <Toaster />
-      <UpdateDonationResultDialog
+      <CreateBloodUnitDialog
         open={isDialogOpen}
         onOpenChange={setIsDialogOpen}
-        templateId={selectedTemplateId}
-        donationResultId={donationResultId}
+        memberId={selectedMember.id} // thực ra là donationRequestId
+        memberName={selectedMember.name}
       />
     </div>
   )

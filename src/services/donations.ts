@@ -105,10 +105,12 @@ export interface DonationResult {
 }
 
 export interface UpdateDonationResultPayload {
-  templateId: string;
-  bloodTestResults: BloodTestResult;
-  resultDate?: string;
-  notes?: string;
+  volumeMl: number
+  bloodgroup: string   // ✅ Thêm vào nếu API cần
+  bloodrh: string
+  notes: string
+  rejectReason?: string
+  status: "completed" | "rejected"
 }
 
 export interface UpdateStatusRequest {
@@ -232,22 +234,9 @@ export const useUpdateDonationResult = () => {
       id: string;
       updateData: UpdateDonationResultPayload;
     }) => {
-      // Fetch the template snapshot based on templateId
-      const { data: templateResponse }: { data: ApiResponse<DonationResultTemplate> } = await api.get(
-        `/donation-result-templates/${updateData.templateId}`
-      );
-      const templateSnapshot = templateResponse.data;
-
-      // Prepare payload with template snapshot and update blood test results
-      const payload = {
-        ...updateData,
-        template: templateSnapshot,
-        currentStatus: 'RESULT_RETURNED', // Automatically set status
-      };
-
       const { data }: { data: ApiResponse<DonationResult> } = await api.patch(
-        `/donations/results/${id}`,
-        payload
+        `/donations/requests/${id}/result`,
+        updateData
       );
       return data.data;
     },

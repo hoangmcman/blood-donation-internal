@@ -40,8 +40,8 @@ export function StaffNavUser() {
   }
 
   const handleSignOut = async () => {
-    await signOut({ redirectUrl: '/login' }); // Redirect to /login after signing out
-    navigate("/login"); // Ensure client-side navigation to /login
+    await signOut({ redirectUrl: '/staff/login' }); // Redirect to /login after signing out
+    navigate("/staff/login"); // Ensure client-side navigation to /login
   };
 
   const handleViewProfile = () => {

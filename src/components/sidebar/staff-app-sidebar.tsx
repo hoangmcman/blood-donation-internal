@@ -72,7 +72,7 @@ const data = {
       roles: ["staff"], // Only for staff
     },   
     {
-      title: "Mẫu yêu cầu hiến máu",
+      title: "Xem kết quả hiến máu",
       url: "/staff/donationresultlist",
       icon: FilePlus,
       roles: ["doctor"], // Only for doctor
