@@ -3,10 +3,9 @@ import LoginPage from '@/pages/Login'
 import { SignedOut, RedirectToSignIn, SignedIn } from "@clerk/clerk-react"
 
 import AdminLayout from './layouts/AdminLayout'
-import Dashboard from '@/pages/admin/dashboard/Dashboard'
+import Dashboard from '@/pages/admin/Dashboard'
 import CampaignList from './pages/admin/CampaignList'
 import UserList from './pages/admin/UserList'
-import BloodStock from './pages/admin/BloodStock'
 import AdminProfile from './pages/admin/AdminProfile'
 
 import StaffLayout from './layouts/StaffLayout'
@@ -51,10 +50,6 @@ export const router = createBrowserRouter([
       {
         path: 'userlist',
         element: <UserList />
-      },
-      {
-        path: 'bloodstock',
-        element: <BloodStock />
       },
       {
         path: 'adminprofile',

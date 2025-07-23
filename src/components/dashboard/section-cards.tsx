@@ -1,4 +1,3 @@
-import { TrendingUpIcon } from "lucide-react"
 import { useGetDashboardSummary } from "@/services/dashboard"
 import { Card, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
@@ -69,26 +68,23 @@ export function SectionCards() {
       {/* ✅ Total Donations */}
       <Card className="@container/card">
         <CardHeader className="relative">
-          <CardDescription>Total Donations</CardDescription>
+          <CardDescription>Tổng số lượt hiến máu</CardDescription>
           <CardTitle className="@[250px]/card:text-3xl text-2xl font-semibold tabular-nums">
             {totalDonationsSummary?.data.totalDonations || 0}
           </CardTitle>
         </CardHeader>
 
-        <CardFooter className="flex-col items-start gap-1 text-sm">
-          <div className="line-clamp-1 flex gap-2 font-medium">
-            Trending up this {totalDonationsRange} <TrendingUpIcon className="size-4" />
-          </div>
+        <CardFooter className="flex-col items-start gap-1 text-sm">         
           <div className="flex items-center gap-2 text-muted-foreground">
-            <span>Donations overview</span>
+            <span>Xem số lượt hiến máu theo</span>
             <Select value={totalDonationsRange} onValueChange={setTotalDonationsRange}>
               <SelectTrigger className="w-[100px]">
                 <SelectValue placeholder="Time" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="week">Week</SelectItem>
-                <SelectItem value="month">Month</SelectItem>
-                <SelectItem value="year">Year</SelectItem>
+                <SelectItem value="week">Tuần</SelectItem>
+                <SelectItem value="month">Tháng</SelectItem>
+                <SelectItem value="year">Năm</SelectItem>
               </SelectContent>
             </Select>
           </div>
@@ -99,25 +95,22 @@ export function SectionCards() {
       {/* ✅ Completed Donations */}
       <Card className="@container/card">
         <CardHeader className="relative">
-          <CardDescription>Completed Donations</CardDescription>
+          <CardDescription>Các lượt hiến máu thành công</CardDescription>
           <CardTitle className="@[250px]/card:text-3xl text-2xl font-semibold tabular-nums">
             {completedDonationsSummary?.data.completedDonations || 0}
           </CardTitle>
         </CardHeader>
-        <CardFooter className="flex-col items-start gap-1 text-sm">
-          <div className="line-clamp-1 flex gap-2 font-medium">
-            Steady progress <TrendingUpIcon className="size-4" />
-          </div>
+        <CardFooter className="flex-col items-start gap-1 text-sm">         
           <div className="flex items-center gap-2 text-muted-foreground">
-            <span>Successful donations</span>
+            <span>Xem xu hướng lượt hiến máu thành công theo</span>
             <Select value={completedDonationsRange} onValueChange={setCompletedDonationsRange}>
               <SelectTrigger className="w-[100px]">
                 <SelectValue placeholder="Time" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="week">Week</SelectItem>
-                <SelectItem value="month">Month</SelectItem>
-                <SelectItem value="year">Year</SelectItem>
+                <SelectItem value="week">Tuần</SelectItem>
+                <SelectItem value="month">Tháng</SelectItem>
+                <SelectItem value="year">Năm</SelectItem>
               </SelectContent>
             </Select>
           </div>
@@ -127,25 +120,22 @@ export function SectionCards() {
       {/* ✅ Total Blood Volume */}
       <Card className="@container/card">
         <CardHeader className="relative">
-          <CardDescription>Total Blood Volume</CardDescription>
+          <CardDescription>Tổng lượng máu</CardDescription>
           <CardTitle className="@[250px]/card:text-3xl text-2xl font-semibold tabular-nums">
             {totalBloodVolumeSummary?.data.totalBloodVolume || 0} ml
           </CardTitle>
         </CardHeader>
-        <CardFooter className="flex-col items-start gap-1 text-sm">
-          <div className="line-clamp-1 flex gap-2 font-medium">
-            Increasing volume <TrendingUpIcon className="size-4" />
-          </div>
+        <CardFooter className="flex-col items-start gap-1 text-sm">         
           <div className="flex items-center gap-2 text-muted-foreground">
-            <span>Blood collection trend</span>
+            <span>Xem lượng máu hiện có theo</span>
             <Select value={totalBloodVolumeRange} onValueChange={setTotalBloodVolumeRange}>
               <SelectTrigger className="w-[100px]">
                 <SelectValue placeholder="Time" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="week">Week</SelectItem>
-                <SelectItem value="month">Month</SelectItem>
-                <SelectItem value="year">Year</SelectItem>
+                <SelectItem value="week">Tuần</SelectItem>
+                <SelectItem value="month">Tháng</SelectItem>
+                <SelectItem value="year">Năm</SelectItem>
               </SelectContent>
             </Select>
           </div>
@@ -155,25 +145,22 @@ export function SectionCards() {
       {/* ✅ Unique Donors */}
       <Card className="@container/card">
         <CardHeader className="relative">
-          <CardDescription>Unique Donors</CardDescription>
+          <CardDescription>Số lượng người hiến máu gần đây</CardDescription>
           <CardTitle className="@[250px]/card:text-3xl text-2xl font-semibold tabular-nums">
             {uniqueDonorsSummary?.data.uniqueDonors || 0}
           </CardTitle>
         </CardHeader>
         <CardFooter className="flex-col items-start gap-1 text-sm">
-          <div className="line-clamp-1 flex gap-2 font-medium">
-            Growing donor base <TrendingUpIcon className="size-4" />
-          </div>
           <div className="flex items-center gap-2 text-muted-foreground">
-            <span>New donor registrations</span>
+            <span>Xem lượt người hiến máu gần đây theo</span>
             <Select value={uniqueDonorsRange} onValueChange={setUniqueDonorsRange}>
               <SelectTrigger className="w-[100px]">
                 <SelectValue placeholder="Time" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="week">Week</SelectItem>
-                <SelectItem value="month">Month</SelectItem>
-                <SelectItem value="year">Year</SelectItem>
+                <SelectItem value="week">Tuần</SelectItem>
+                <SelectItem value="month">Tháng</SelectItem>
+                <SelectItem value="year">Năm</SelectItem>
               </SelectContent>
             </Select>
           </div>
