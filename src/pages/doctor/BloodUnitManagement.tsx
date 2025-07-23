@@ -42,7 +42,7 @@ import {
 	TableHeader,
 	TableRow,
 } from "@/components/ui/table";
-import { BloodGroup } from "@/interfaces/blood";
+import { BloodComponentType, BloodGroup } from "@/interfaces/blood";
 import { BloodUnit, BloodUnitStatus } from "@/interfaces/inventory";
 import {
 	ColumnDef,
@@ -61,6 +61,7 @@ interface FilterState {
 	bloodType?: BloodGroup;
 	status?: BloodUnitStatus;
 	expired?: boolean;
+	bloodComponentType?: BloodComponentType;
 }
 
 export default function BloodUnitList() {
@@ -73,7 +74,12 @@ export default function BloodUnitList() {
 	const [isUpdateDialogOpen, setIsUpdateDialogOpen] = useState<string | null>(null);
 	const [viewBloodUnit, setViewBloodUnit] = useState<BloodUnit | null>(null);
 	const [showFilters, setShowFilters] = useState(false);
-	const [filters, setFilters] = useState<FilterState>({});
+	const [filters, setFilters] = useState<FilterState>({
+		bloodType: undefined,
+		status: undefined,
+		expired: undefined,
+		bloodComponentType: undefined,
+	});
 
 	const columns: ColumnDef<BloodUnit>[] = [
 		{
@@ -162,11 +168,17 @@ export default function BloodUnitList() {
 							<Eye className="mr-2 h-4 w-4" />
 							Xem chi tiết
 						</DropdownMenuItem>
-						<DropdownMenuSeparator />
-						<DropdownMenuItem onClick={() => setIsUpdateDialogOpen(row.original.id)}>
-							<Edit className="mr-2 h-4 w-4" />
-							Cập nhật máu theo thành phần
-						</DropdownMenuItem>
+
+						{row.original.bloodComponentType === "whole_blood" &&
+							row.original.status !== "used" && (
+								<>
+									<DropdownMenuSeparator />
+									<DropdownMenuItem onClick={() => setIsUpdateDialogOpen(row.original.id)}>
+										<Edit className="mr-2 h-4 w-4" />
+										Cập nhật máu theo thành phần
+									</DropdownMenuItem>
+								</>
+							)}
 					</DropdownMenuContent>
 				</DropdownMenu>
 			),
@@ -179,10 +191,16 @@ export default function BloodUnitList() {
 		bloodType: filters.bloodType,
 		status: filters.status,
 		expired: filters.expired,
+		bloodComponentType: filters.bloodComponentType,
 	});
 
 	const clearFilters = () => {
-		setFilters({});
+		setFilters({
+			bloodType: undefined,
+			status: undefined,
+			expired: undefined,
+			bloodComponentType: undefined,
+		});
 	};
 
 	const hasActiveFilters = Object.values(filters).some(
@@ -313,6 +331,29 @@ export default function BloodUnitList() {
 									<SelectContent>
 										<SelectItem value="true">Đã hết hạn</SelectItem>
 										<SelectItem value="false">Còn hạn</SelectItem>
+									</SelectContent>
+								</Select>
+							</div>
+
+							<div className="space-y-2">
+								<Label htmlFor="bloodComponentType">Loại thành phần máu</Label>
+								<Select
+									value={filters.bloodComponentType || ""}
+									onValueChange={(value) =>
+										setFilters((prev) => ({
+											...prev,
+											bloodComponentType: (value as BloodComponentType) || undefined,
+										}))
+									}
+								>
+									<SelectTrigger>
+										<SelectValue placeholder="Chọn loại thành phần" />
+									</SelectTrigger>
+									<SelectContent>
+										<SelectItem value="whole_blood">Máu toàn phần</SelectItem>
+										<SelectItem value="red_blood_cells">Hồng cầu</SelectItem>
+										<SelectItem value="plasma">Huyết tương</SelectItem>
+										<SelectItem value="platelets">Tiểu cầu</SelectItem>
 									</SelectContent>
 								</Select>
 							</div>

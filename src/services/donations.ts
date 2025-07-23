@@ -1,154 +1,32 @@
 import { ApiResponse } from "@/interfaces/base";
+import {
+	DonationRequest,
+	DonationResult,
+	GetAllDonationRequestsParams,
+	PaginatedDonationResponse,
+	PaginatedDonationResultResponse,
+	UpdateDonationResultPayload,
+	UpdateStatusRequest,
+} from "@/interfaces/donation";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 
 import api from "../config/api";
+import { DonationResultTemplate } from "./donationresulttemplates";
 
-export interface DonationRequest {
-	id: string;
-	createdAt: string;
-	updatedAt: string;
-	campaign: {
-		id: string;
-		name: string;
-		status: string;
-		description?: string;
-		startDate?: string;
-		endDate?: string;
-		banner?: string;
-		location?: string;
-		limitDonation?: number;
-		bloodCollectionDate?: string;
-	};
-	donor: {
-		id: string;
-		firstName: string;
-		lastName: string;
-		bloodType?: {
-			group: string;
-			rh: string;
-		};
-		phone?: string;
-		wardName?: string;
-		districtName?: string;
-		provinceName?: string;
-	};
-	currentStatus: string;
-	appointmentDate: string;
-}
-
-export interface Option {
-	id: string;
-	label: string;
-}
-
-export interface Item {
-	id: string;
-	type: string;
-	label: string;
-	description: string;
-	placeholder?: string;
-	defaultValue?: string;
-	sortOrder: number;
-	minValue?: number;
-	maxValue?: number;
-	minLength?: number;
-	maxLength?: number;
-	isRequired: boolean;
-	pattern?: string;
-	options?: Option[];
-}
-
-export interface DonationResultTemplate {
-	id: string;
-	name: string;
-	description: string;
-	active: boolean;
-	createdAt: string;
-	updatedAt: string;
-	createdBy: {
-		id: string;
-		firstName: string;
-		lastName: string;
-	};
-	updatedBy: {
-		id: string;
-		firstName: string;
-		lastName: string;
-	};
-	items: Item[];
-}
-
-export interface BloodTestResult {
-	[key: string]: string; // Dynamic properties for additionalProp1, additionalProp2, etc.
-}
-
-export interface DonationResult {
-	id: string;
-	campaignDonation: {
-		id: string;
-		currentStatus: string;
-		donor: {
-			id: string;
-			firstName: string;
-			lastName: string;
-		};
-	};
-	bloodTestResults: BloodTestResult;
-	template: DonationResultTemplate;
-	resultDate: string;
-	notes?: string;
-	processedBy: {
-		id: string;
-		firstName: string;
-		lastName: string;
-	};
-	createdAt: string;
-	updatedAt: string;
-}
-
-export interface UpdateDonationResultPayload {
-	templateId: string;
-	bloodTestResults: BloodTestResult;
-	resultDate?: string;
-	notes?: string;
-}
-
-export interface UpdateStatusRequest {
-	status: string;
-	appointmentDate?: string;
-	note?: string;
-}
-
-export interface PaginatedDonationResponse {
-	items: DonationRequest[];
-	total: number;
-}
-
-export interface PaginatedDonationResultResponse {
-	items: DonationResult[];
-	meta: {
-		page: number;
-		limit: number;
-		total: number;
-		totalPages: number;
-		hasNextPage: boolean;
-		hasPreviousPage: boolean;
-	};
-}
+const getDonationRequests = async (
+	params?: GetAllDonationRequestsParams
+): Promise<PaginatedDonationResponse> => {
+	const response = await api.get<ApiResponse<PaginatedDonationResponse>>("/donations/requests", {
+		params,
+	});
+	return response.data.data;
+};
 
 // Existing Donation Request APIs
-export const useGetDonationRequests = (status?: string) => {
-	return useQuery<DonationRequest[], Error>({
-		queryKey: ["donationRequests", status],
-		queryFn: async () => {
-			const { data }: { data: ApiResponse<PaginatedDonationResponse> } = await api.get(
-				"/donations/requests",
-				{
-					params: status ? { status } : {},
-				}
-			);
-			return data.data.items;
-		},
+export const useGetDonationRequests = (params?: GetAllDonationRequestsParams) => {
+	return useQuery<PaginatedDonationResponse, Error>({
+		queryKey: ["donationRequests", params],
+		queryFn: async () => await getDonationRequests(params),
 	});
 };
 

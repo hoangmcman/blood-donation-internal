@@ -1,4 +1,4 @@
-import { BloodGroup, BloodType } from "./blood";
+import { BloodComponentType, BloodGroup, BloodType } from "./blood";
 import { PaginationMeta } from "./pagination";
 
 export interface InventoryMember {
@@ -122,4 +122,5 @@ export interface GetAllBloodUnitsParams {
 	bloodType?: BloodGroup;
 	status?: BloodUnitStatus;
 	expired?: boolean;
+	bloodComponentType?: BloodComponentType;
 }

@@ -1,119 +1,27 @@
 import { ApiResponse } from "@/interfaces/base";
+import {
+	Campaign,
+	CampaignResponse,
+	CreateCampaignPayload,
+	DonationRequestResponse,
+	GetAllCampaignsParams,
+} from "@/interfaces/campaign";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 
 import api from "../config/api";
 
-export interface Campaign {
-	id: string;
-	name: string;
-	description: string;
-	status: string;
-	startDate: string;
-	endDate: string;
-	createdAt: string;
-	updatedAt: string;
-	banner: string;
-	location: string;
-	limitDonation: number;
-	bloodCollectionDate?: string;
-}
-
-export interface Donor {
-	id: string;
-	firstName: string;
-	lastName: string;
-}
-
-export interface DonationRequest {
-	id: string;
-	donor: Donor;
-	campaign: {
-		id: string;
-		name: string;
-	};
-	amount: number;
-	note: string;
-	appointmentDate: string;
-	currentStatus:
-		| "pending"
-		| "rejected"
-		| "completed"
-		| "result_returned"
-		| "appointment_confirmed"
-		| "appointment_cancelled"
-		| "appointment_absent"
-		| "customer_cancelled"
-		| "customer_checked_in";
-	createdAt: string;
-	updatedAt: string;
-}
-
-export interface PaginationMeta {
-	page: number;
-	limit: number;
-	total: number;
-	totalPages: number;
-	hasNextPage: boolean;
-	hasPreviousPage: boolean;
-}
-
-export interface DonationRequestResponse {
-	success: boolean;
-	message: string;
-	data: {
-		data: DonationRequest[];
-		meta: PaginationMeta;
-	};
-}
-
-export interface CampaignResponse {
-	success: boolean;
-	message: string;
-	data: {
-		data: Campaign[];
-		meta: PaginationMeta;
-	};
-}
-
-export interface CreateCampaignPayload {
-	name: string;
-	description?: string;
-	status: string;
-	startDate: string;
-	endDate?: string;
-	banner: string;
-	location: string;
-	limitDonation: number;
-}
-
 // Read (Get Available Campaigns)
-export const getCampaigns = async (
-	search?: string,
-	limit: number = 10,
-	page: number = 1,
-	status?: string
-): Promise<CampaignResponse> => {
-	const params: { search?: string; limit?: number; page?: number; status?: string } = {};
-	if (search) params.search = search;
-	if (status) params.status = status;
-	params.limit = limit;
-	params.page = page;
-
+export const getCampaigns = async (params?: GetAllCampaignsParams): Promise<CampaignResponse> => {
 	const response = await api.get<CampaignResponse>("/campaigns", {
 		params,
 	});
 	return response.data;
 };
 
-export const useGetCampaigns = (
-	page: number = 1,
-	limit: number = 10,
-	search?: string,
-	status?: string
-) => {
-	return useQuery({
-		queryKey: ["campaigns", search, page, limit, status],
-		queryFn: () => getCampaigns(search, limit, page, status),
+export const useGetCampaigns = (params?: GetAllCampaignsParams) => {
+	return useQuery<CampaignResponse, Error>({
+		queryKey: ["campaigns", params],
+		queryFn: () => getCampaigns(params),
 	});
 };
 

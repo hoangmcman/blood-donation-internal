@@ -29,7 +29,6 @@ import {
 	SelectTrigger,
 	SelectValue,
 } from "@/components/ui/select";
-import { Toaster } from "@/components/ui/sonner";
 import {
 	Table,
 	TableBody,
@@ -203,12 +202,12 @@ export default function StaffCampaignList() {
 		setPagination((prev) => ({ ...prev, pageIndex: 0 }));
 	}, [statusFilter, debouncedSearch]);
 
-	const { data, isLoading, error } = useGetCampaigns(
-		Number(pagination.pageIndex) + 1,
-		Number(pagination.pageSize),
-		debouncedSearch || undefined, // search
-		statusFilter // status
-	);
+	const { data, isLoading, error } = useGetCampaigns({
+		search: debouncedSearch,
+		status: statusFilter as any,
+		page: pagination.pageIndex + 1,
+		limit: pagination.pageSize,
+	});
 
 	const table = useReactTable({
 		data: data?.data.data || [],
@@ -228,14 +227,6 @@ export default function StaffCampaignList() {
 		manualPagination: true,
 		pageCount: data?.data.meta.totalPages,
 	});
-
-	if (isLoading) {
-		return (
-			<div className="flex items-center justify-center h-screen">
-				<Loader />
-			</div>
-		);
-	}
 
 	if (error) {
 		return <div>Lỗi: {error.message}</div>;
@@ -282,89 +273,99 @@ export default function StaffCampaignList() {
 				</div>
 			</div>
 
-			<div className="rounded-md border">
-				<Table>
-					<TableHeader>
-						{table.getHeaderGroups().map((headerGroup) => (
-							<TableRow key={headerGroup.id}>
-								{headerGroup.headers.map((header) => (
-									<TableHead key={header.id}>
-										{header.isPlaceholder
-											? null
-											: flexRender(header.column.columnDef.header, header.getContext())}
-									</TableHead>
+			{isLoading && (
+				<div className="flex items-center justify-center">
+					<Loader />
+				</div>
+			)}
+
+			{!isLoading && (
+				<>
+					<div className="rounded-md border">
+						<Table>
+							<TableHeader>
+								{table.getHeaderGroups().map((headerGroup) => (
+									<TableRow key={headerGroup.id}>
+										{headerGroup.headers.map((header) => (
+											<TableHead key={header.id}>
+												{header.isPlaceholder
+													? null
+													: flexRender(header.column.columnDef.header, header.getContext())}
+											</TableHead>
+										))}
+									</TableRow>
 								))}
-							</TableRow>
-						))}
-					</TableHeader>
-					<TableBody>
-						{table.getRowModel().rows?.length ? (
-							table.getRowModel().rows.map((row) => (
-								<TableRow key={row.id}>
-									{row.getVisibleCells().map((cell) => (
-										<TableCell key={cell.id}>
-											{flexRender(cell.column.columnDef.cell, cell.getContext())}
+							</TableHeader>
+							<TableBody>
+								{table.getRowModel().rows?.length ? (
+									table.getRowModel().rows.map((row) => (
+										<TableRow key={row.id}>
+											{row.getVisibleCells().map((cell) => (
+												<TableCell key={cell.id}>
+													{flexRender(cell.column.columnDef.cell, cell.getContext())}
+												</TableCell>
+											))}
+										</TableRow>
+									))
+								) : (
+									<TableRow>
+										<TableCell colSpan={columns.length} className="h-24 text-center">
+											{searchQuery || statusFilter !== "active"
+												? `Không tìm thấy chiến dịch nào với bộ lọc hiện tại.`
+												: "Không tìm thấy chiến dịch nào."}
 										</TableCell>
-									))}
-								</TableRow>
-							))
-						) : (
-							<TableRow>
-								<TableCell colSpan={columns.length} className="h-24 text-center">
-									{searchQuery || statusFilter !== "active"
-										? `Không tìm thấy chiến dịch nào với bộ lọc hiện tại.`
-										: "Không tìm thấy chiến dịch nào."}
-								</TableCell>
-							</TableRow>
-						)}
-					</TableBody>
-				</Table>
-			</div>
-			<div className="flex items-center justify-between py-4">
-				<div className="flex-1 text-sm text-muted-foreground">
-					{data?.data.meta && (
-						<span>
-							Hiển thị {data.data.meta.total} chiến dịch • Trang{" "}
-							{table.getState().pagination.pageIndex + 1} / {table.getPageCount()}
-						</span>
-					)}
-				</div>
-				<div className="space-x-2">
-					<Button
-						variant="outline"
-						size="sm"
-						onClick={() => table.setPageIndex(0)}
-						disabled={!table.getCanPreviousPage()}
-					>
-						<ChevronsLeftIcon className="h-4 w-4" />
-					</Button>
-					<Button
-						variant="outline"
-						size="sm"
-						onClick={() => table.previousPage()}
-						disabled={!table.getCanPreviousPage()}
-					>
-						<ChevronLeftIcon className="h-4 w-4" />
-					</Button>
-					<Button
-						variant="outline"
-						size="sm"
-						onClick={() => table.nextPage()}
-						disabled={!table.getCanNextPage()}
-					>
-						<ChevronRightIcon className="h-4 w-4" />
-					</Button>
-					<Button
-						variant="outline"
-						size="sm"
-						onClick={() => table.setPageIndex(table.getPageCount() - 1)}
-						disabled={!table.getCanNextPage()}
-					>
-						<ChevronsRightIcon className="h-4 w-4" />
-					</Button>
-				</div>
-			</div>
-			<Toaster />
+									</TableRow>
+								)}
+							</TableBody>
+						</Table>
+					</div>
+
+					<div className="flex items-center justify-between py-4">
+						<div className="flex-1 text-sm text-muted-foreground">
+							{data?.data.meta && (
+								<span>
+									Hiển thị {data.data.meta.total} chiến dịch • Trang{" "}
+									{table.getState().pagination.pageIndex + 1} / {table.getPageCount()}
+								</span>
+							)}
+						</div>
+						<div className="space-x-2">
+							<Button
+								variant="outline"
+								size="sm"
+								onClick={() => table.setPageIndex(0)}
+								disabled={!table.getCanPreviousPage()}
+							>
+								<ChevronsLeftIcon className="h-4 w-4" />
+							</Button>
+							<Button
+								variant="outline"
+								size="sm"
+								onClick={() => table.previousPage()}
+								disabled={!table.getCanPreviousPage()}
+							>
+								<ChevronLeftIcon className="h-4 w-4" />
+							</Button>
+							<Button
+								variant="outline"
+								size="sm"
+								onClick={() => table.nextPage()}
+								disabled={!table.getCanNextPage()}
+							>
+								<ChevronRightIcon className="h-4 w-4" />
+							</Button>
+							<Button
+								variant="outline"
+								size="sm"
+								onClick={() => table.setPageIndex(table.getPageCount() - 1)}
+								disabled={!table.getCanNextPage()}
+							>
+								<ChevronsRightIcon className="h-4 w-4" />
+							</Button>
+						</div>
+					</div>
+				</>
+			)}
 		</div>
 	);
 }
