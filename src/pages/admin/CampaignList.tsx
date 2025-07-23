@@ -65,25 +65,6 @@ const columns: ColumnDef<Campaign, any>[] = [
     header: "Tên chiến dịch",
   },
   {
-    accessorKey: "description",
-    header: "Mô tả",
-  },
-  {
-    accessorKey: "startDate",
-    header: "Ngày bắt đầu",
-    cell: ({ row }) => new Date(row.getValue("startDate")).toLocaleDateString('vi-VN'),
-  },
-  {
-    accessorKey: "endDate",
-    header: "Ngày kết thúc",
-    cell: ({ row }) => row.getValue("endDate") ? new Date(row.getValue("endDate")).toLocaleDateString('vi-VN') : "Không có",
-  },
-  {
-    accessorKey: "bloodCollectionDate",
-    header: "Ngày thu thập máu",
-    cell: ({ row }) => row.getValue("bloodCollectionDate") ? new Date(row.getValue("bloodCollectionDate")).toLocaleDateString('vi-VN') : "Không có",
-  },
-  {
     accessorKey: "status",
     header: "Trạng thái",
     cell: ({ row }) => {
@@ -113,19 +94,6 @@ const columns: ColumnDef<Campaign, any>[] = [
         </Badge>
       )
     },
-  },
-  {
-    accessorKey: "banner",
-    header: "Banner",
-    cell: ({ row }) => (
-      <a href={row.getValue("banner")} target="_blank" rel="noopener noreferrer">
-        Xem Banner
-      </a>
-    ),
-  },
-  {
-    accessorKey: "location",
-    header: "Địa điểm",
   },
   {
     accessorKey: "limitDonation",

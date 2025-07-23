@@ -42,7 +42,7 @@ const data = {
       roles: ["doctor"], // Only for doctor
     },
     {
-      title: "Cập nhật đơn vị máu",
+      title: "Chiến dịch hiến máu",
       url: "/staff",
       icon: FlagTriangleRight,
       roles: ["doctor"], // Only for doctor

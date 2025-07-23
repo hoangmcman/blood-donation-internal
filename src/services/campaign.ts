@@ -88,7 +88,7 @@ export const getCampaigns = async (search?: string, limit: number = 10, page: nu
   params.limit = limit;
   params.page = page;
 
-  const response = await api.get<CampaignResponse>('/campaigns/available', {
+  const response = await api.get<CampaignResponse>('/campaigns', {
     params,
   });
   return response.data;
