@@ -1,37 +1,41 @@
-"use client"
+"use client";
 
-import * as React from "react"
-import { Link } from "react-router-dom"
 import {
-  CameraIcon,
-  Newspaper,
-  FileClock,
-  Cross,
-  FileCodeIcon,
-  FileTextIcon,
-  FlagTriangleRight,
-  Droplet,
-  FilePlus,
-} from "lucide-react"
+	CameraIcon,
+	Cross,
+	Droplet,
+	FileClock,
+	FileCodeIcon,
+	FilePlus,
+	FileTextIcon,
+	FlagTriangleRight,
+	Newspaper,
+} from "lucide-react";
+import * as React from "react";
+import { Link, useLocation } from "react-router-dom";
+
 import {
-  Sidebar,
-  SidebarContent,
-  SidebarHeader,
-  SidebarFooter,
-  SidebarMenu,
-  SidebarMenuButton,
-  SidebarMenuItem,
-} from "@/components/ui/sidebar"
-import { StaffNavUser } from "./staff-nav-user"
-import { useAuthContext } from "../../providers/AuthProvider"
+	Sidebar,
+	SidebarContent,
+	SidebarFooter,
+	SidebarGroup,
+	SidebarGroupContent,
+	SidebarHeader,
+	SidebarMenu,
+	SidebarMenuButton,
+	SidebarMenuItem,
+} from "@/components/ui/sidebar";
+
+import { useAuthContext } from "../../providers/AuthProvider";
+import { StaffNavUser } from "./staff-nav-user";
 
 // Mock function to get user sub-role based on userId (replace with actual API call)
 const getUserSubRole = (userId: string | null): "staff" | "doctor" => {
-  // Based on provided schema
-  if (userId === "user_2zSQsxizyGvxjpPLOPJUJ1Fq5nJ") return "staff"
-  if (userId === "user_2zSQe5CvQDUSxEg7xsdr1q86q17") return "doctor"
-  return "staff" // Default to staff if unknown
-}
+	// Based on provided schema
+	if (userId === "user_2zSQsxizyGvxjpPLOPJUJ1Fq5nJ") return "staff";
+	if (userId === "user_2zSQe5CvQDUSxEg7xsdr1q86q17") return "doctor";
+	return "staff"; // Default to staff if unknown
+};
 
 const data = {
   navMain: [
@@ -135,51 +139,58 @@ const data = {
 }
 
 function NavMain({ items }: { items: typeof data.navMain }) {
-  return (
-    <SidebarMenu>
-      {items.map((item) => (
-        <SidebarMenuItem key={item.title}>
-          <SidebarMenuButton asChild tooltip={item.title}>
-            <Link to={item.url} className="flex items-center gap-2">
-              <item.icon />
-              <span>{item.title}</span>
-            </Link>
-          </SidebarMenuButton>
-        </SidebarMenuItem>
-      ))}
-    </SidebarMenu>
-  )
+	const pathname = useLocation().pathname;
+
+	return (
+		<SidebarGroup>
+			<SidebarGroupContent className="flex flex-col gap-2">
+				<SidebarMenu>
+					{items.map((item) => {
+						const isActive = pathname.startsWith(item.url);
+
+						return (
+							<SidebarMenuItem key={item.title}>
+								<SidebarMenuButton asChild tooltip={item.title} isActive={isActive}>
+									<Link to={item.url}>
+										<item.icon />
+										<span>{item.title}</span>
+									</Link>
+								</SidebarMenuButton>
+							</SidebarMenuItem>
+						);
+					})}
+				</SidebarMenu>
+			</SidebarGroupContent>
+		</SidebarGroup>
+	);
 }
 
 export function StaffAppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
-  const { userId } = useAuthContext()
-  const subRole = getUserSubRole(userId)
-  // Filter navMain items based on user sub-role
-  const filteredNavMain = data.navMain.filter((item) => item.roles.includes(subRole))
+	const { userId } = useAuthContext();
+	const subRole = getUserSubRole(userId);
+	// Filter navMain items based on user sub-role
+	const filteredNavMain = data.navMain.filter((item) => item.roles.includes(subRole));
 
-  return (
-    <Sidebar collapsible="offcanvas" className="flex flex-col h-full" {...props}>
-      <SidebarHeader>
-        <SidebarMenu>
-          <SidebarMenuItem>
-            <SidebarMenuButton
-              asChild
-              className="data-[slot=sidebar-menu-button]:!p-1.5"
-            >
-              <Link to="#" className="flex items-center space-x-2">
-                <Cross className="h-5 w-5 text-red-500" />
-                <span className="text-base font-semibold">BloodLink</span>
-              </Link>
-            </SidebarMenuButton>
-          </SidebarMenuItem>
-        </SidebarMenu>
-      </SidebarHeader>
-      <SidebarContent className="flex-1">
-        <NavMain items={filteredNavMain} />
-      </SidebarContent>
-      <SidebarFooter className="mt-auto">
-        <StaffNavUser />
-      </SidebarFooter>
-    </Sidebar>
-  )
+	return (
+		<Sidebar collapsible="icon" className="flex flex-col h-full" {...props}>
+			<SidebarHeader>
+				<SidebarMenu>
+					<SidebarMenuItem>
+						<SidebarMenuButton asChild className="data-[slot=sidebar-menu-button]:!p-1.5">
+							<Link to={"#"}>
+								<Cross className="h-5 w-5 text-red-500" />
+								<span className="text-base font-semibold">BloodLink</span>
+							</Link>
+						</SidebarMenuButton>
+					</SidebarMenuItem>
+				</SidebarMenu>
+			</SidebarHeader>
+			<SidebarContent className="flex-1">
+				<NavMain items={filteredNavMain} />
+			</SidebarContent>
+			<SidebarFooter className="mt-auto">
+				<StaffNavUser />
+			</SidebarFooter>
+		</Sidebar>
+	);
 }

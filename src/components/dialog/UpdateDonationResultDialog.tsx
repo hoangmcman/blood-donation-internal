@@ -1,6 +1,10 @@
-"use client"
+"use client";
 
-import * as React from "react"
+import * as React from "react";
+import { toast } from "sonner";
+
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 import {
   Dialog,
   DialogContent,
@@ -78,18 +82,18 @@ export default function UpdateDonationResultDialog({
     }))
   }
 
-  const handleSubmit = async () => {
-    try {
-      await updateDonationResult.mutateAsync({
-        id: donationResultId,
-        updateData: formData,
-      })
-      toast.success("Cập nhật kết quả hiến máu thành công")
-      onOpenChange(false)
-    } catch (error) {
-      toast.error("Lỗi khi cập nhật kết quả hiến máu")
-    }
-  }
+	const handleSubmit = async () => {
+		try {
+			await updateDonationResult.mutateAsync({
+				id: donationResultId,
+				updateData: formData,
+			});
+			toast.success("Cập nhật kết quả hiến máu thành công");
+			onOpenChange(false);
+		} catch (error) {
+			toast.error("Lỗi khi cập nhật kết quả hiến máu");
+		}
+	};
 
   if (isRequestLoading) {
     return (
@@ -208,3 +212,4 @@ export default function UpdateDonationResultDialog({
     </Dialog>
   )
 }
+

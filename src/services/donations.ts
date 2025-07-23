@@ -1,38 +1,17 @@
-import api from '../config/api';
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { ApiResponse } from "@/interfaces/base";
+import {
+	DonationRequest,
+	DonationResult,
+	GetAllDonationRequestsParams,
+	PaginatedDonationResponse,
+	PaginatedDonationResultResponse,
+	UpdateDonationResultPayload,
+	UpdateStatusRequest,
+} from "@/interfaces/donation";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 
-export interface DonationRequest {
-  id: string;
-  createdAt: string;
-  updatedAt: string;
-  campaign: {
-    id: string;
-    name: string;
-    status: string;
-    description?: string;
-    startDate?: string;
-    endDate?: string;
-    banner?: string;
-    location?: string;
-    limitDonation?: number;
-    bloodCollectionDate?: string;
-  };
-  donor: {
-    id: string;
-    firstName: string;
-    lastName: string;
-    bloodType?: {
-      group: string;
-      rh: string;
-    };
-    phone?: string;
-    wardName?: string;
-    districtName?: string;
-    provinceName?: string;
-  };
-  currentStatus: string;
-  appointmentDate: string;
-}
+import api from "../config/api";
+import { DonationResultTemplate } from "./donationresulttemplates";
 
 export interface Option {
   id: string;
@@ -143,88 +122,74 @@ export interface PaginatedDonationResultResponse {
 }
 
 // Existing Donation Request APIs
-export const useGetDonationRequests = (status?: string) => {
-  return useQuery<DonationRequest[], Error>({
-    queryKey: ['donationRequests', status],
-    queryFn: async () => {
-      const { data }: { data: ApiResponse<PaginatedDonationResponse> } = await api.get(
-        '/donations/requests',
-        {
-          params: status ? { status } : {},
-        }
-      );
-      return data.data.items;
-    },
-  });
+export const useGetDonationRequests = (params?: GetAllDonationRequestsParams) => {
+	return useQuery<PaginatedDonationResponse, Error>({
+		queryKey: ["donationRequests", params],
+		queryFn: async () => await getDonationRequests(params),
+	});
 };
 
 export const useGetDonationRequestById = (id: string) => {
-  return useQuery<DonationRequest, Error>({
-    queryKey: ['donationRequest', id],
-    queryFn: async () => {
-      const { data }: { data: ApiResponse<DonationRequest> } = await api.get(
-        `/donations/requests/${id}`
-      );
-      return data.data;
-    },
-    enabled: !!id,
-  });
+	return useQuery<DonationRequest, Error>({
+		queryKey: ["donationRequest", id],
+		queryFn: async () => {
+			const { data }: { data: ApiResponse<DonationRequest> } = await api.get(
+				`/donations/requests/${id}`
+			);
+			return data.data;
+		},
+		enabled: !!id,
+	});
 };
 
 export const useUpdateDonationStatus = () => {
-  const queryClient = useQueryClient();
+	const queryClient = useQueryClient();
 
-  return useMutation({
-    mutationFn: async ({
-      id,
-      statusData,
-    }: {
-      id: string;
-      statusData: UpdateStatusRequest;
-    }) => {
-      const { data }: { data: ApiResponse<DonationRequest> } = await api.patch(
-        `/donations/requests/${id}/status`,
-        statusData
-      );
-      return data.data;
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['donationRequests'] });
-    },
-  });
+	return useMutation({
+		mutationFn: async ({ id, statusData }: { id: string; statusData: UpdateStatusRequest }) => {
+			const { data }: { data: ApiResponse<DonationRequest> } = await api.patch(
+				`/donations/requests/${id}/status`,
+				statusData
+			);
+			return data.data;
+		},
+		onSuccess: () => {
+			queryClient.invalidateQueries({ queryKey: ["donationRequests"] });
+		},
+	});
 };
 
 // New Donation Result APIs
 export const useGetDonationResults = (page: number = 1, limit: number = 10) => {
-  return useQuery<PaginatedDonationResultResponse, Error>({
-    queryKey: ['donationResults', page, limit],
-    queryFn: async () => {
-      const { data }: { data: ApiResponse<PaginatedDonationResultResponse> } = await api.get(
-        '/donations/results',
-        {
-          params: { page, limit },
-        }
-      );
-      return data.data;
-    },
-  });
+	return useQuery<PaginatedDonationResultResponse, Error>({
+		queryKey: ["donationResults", page, limit],
+		queryFn: async () => {
+			const { data }: { data: ApiResponse<PaginatedDonationResultResponse> } = await api.get(
+				"/donations/results",
+				{
+					params: { page, limit },
+				}
+			);
+			return data.data;
+		},
+	});
 };
 
 export const useGetDonationResultById = (id: string) => {
-  return useQuery<DonationResult, Error>({
-    queryKey: ['donationResult', id],
-    queryFn: async () => {
-      const { data }: { data: ApiResponse<DonationResult> } = await api.get(
-        `/donations/results/${id}`
-      );
-      return data.data;
-    },
-    enabled: !!id,
-  });
+	return useQuery<DonationResult, Error>({
+		queryKey: ["donationResult", id],
+		queryFn: async () => {
+			const { data }: { data: ApiResponse<DonationResult> } = await api.get(
+				`/donations/results/${id}`
+			);
+			return data.data;
+		},
+		enabled: !!id,
+	});
 };
 
 export const useUpdateDonationResult = () => {
-  const queryClient = useQueryClient();
+	const queryClient = useQueryClient();
 
   return useMutation({
     mutationFn: async ({

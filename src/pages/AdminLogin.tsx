@@ -1,14 +1,14 @@
 "use client";
 
-import { HeartPlus } from "lucide-react";
+import { Shield } from "lucide-react";
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Toaster } from "sonner";
 
-import { LoginForm } from "@/components/login-form";
+import { AdminLoginForm } from "@/components/admin-login-form";
 import { useAuth } from "@clerk/clerk-react";
 
-export default function GeneralLoginPage() {
+export default function AdminLoginPage() {
 	const { isLoaded, isSignedIn } = useAuth();
 	const navigate = useNavigate();
 	const [shouldRender, setShouldRender] = useState(false);
@@ -17,7 +17,7 @@ export default function GeneralLoginPage() {
 		if (!isLoaded) return; // Chờ Clerk load xong
 
 		if (isSignedIn) {
-			navigate("/staff/campaign", { replace: true }); // Nếu đã đăng nhập thì redirect về homepage
+			navigate("/admin", { replace: true }); // Nếu đã đăng nhập thì redirect về admin dashboard
 		} else {
 			setShouldRender(true); // Cho phép render login page nếu chưa đăng nhập
 		}
@@ -41,15 +41,15 @@ export default function GeneralLoginPage() {
 			<div className="relative z-10 flex flex-col items-center gap-6 p-6 w-full max-w-md">
 				{/* Logo and Branding */}
 				<div className="flex items-center gap-2">
-					<div className="flex h-10 w-10 items-center justify-center rounded-full bg-red-600 text-white">
-						<HeartPlus className="h-6 w-6" />
+					<div className="flex h-10 w-10 items-center justify-center rounded-full bg-blue-600 text-white">
+						<Shield className="h-6 w-6" />
 					</div>
-					<span className="text-2xl font-bold text-white">BloodLink</span>
+					<span className="text-2xl font-bold text-white">BloodLink Admin</span>
 				</div>
 
 				{/* Form Container */}
 				<div className="w-full bg-white/90 backdrop-blur-md rounded-lg shadow-xl p-8">
-					<LoginForm onSwitchToSignup={() => {}} />
+					<AdminLoginForm onSwitchToSignup={() => {}} />
 				</div>
 			</div>
 			<Toaster position="top-right" richColors />

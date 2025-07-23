@@ -11,11 +11,11 @@ import api from "@/config/api";
 import { cn } from "@/lib/utils";
 import { useSignIn, useUser } from "@clerk/clerk-react";
 
-interface LoginFormProps extends React.ComponentPropsWithoutRef<"form"> {
+interface AdminLoginFormProps extends React.ComponentPropsWithoutRef<"form"> {
 	onSwitchToSignup?: () => void;
 }
 
-export function LoginForm({ className, onSwitchToSignup, ...props }: LoginFormProps) {
+export function AdminLoginForm({ className, onSwitchToSignup, ...props }: AdminLoginFormProps) {
 	const { isLoaded, signIn, setActive } = useSignIn();
 	useUser();
 	const navigate = useNavigate();
@@ -47,18 +47,17 @@ export function LoginForm({ className, onSwitchToSignup, ...props }: LoginFormPr
 						const res = await api.get("/staffs/me");
 						const role = res.data?.data?.role;
 
-						if (role === "staff") {
-							navigate("/staff/emergency-request");
-						} else if (role === "doctor") {
-							navigate("/staff");
+						if (role === "admin") {
+							navigate("/admin");
 						} else {
-							console.error("Vai trò không xác định từ API:", role);
-							toast.error("Vai trò không xác định. Chuyển hướng về trang chủ.");
-							navigate("/staff/campaign");
+							console.error("Vai trò không phù hợp với đăng nhập admin:", role);
+							toast.error("Tài khoản này không có quyền truy cập admin. Vui lòng kiểm tra lại.");
+							// Có thể redirect về trang chủ hoặc đăng xuất
+							navigate("/");
 						}
 					} catch (error) {
 						console.error("Không thể lấy vai trò người dùng:", error);
-						toast.error("Không thể lấy vai trò người dùng. Chuyển hướng về trang chủ.");
+						toast.error("Không thể xác thực vai trò người dùng. Vui lòng thử lại.");
 						navigate("/");
 					}
 				}, 100);
@@ -75,8 +74,8 @@ export function LoginForm({ className, onSwitchToSignup, ...props }: LoginFormPr
 	return (
 		<form className={cn("flex flex-col gap-6", className)} onSubmit={handleSubmit} {...props}>
 			<div className="flex flex-col items-center gap-2 text-center">
-				<h1 className="text-2xl font-bold">Đăng nhập vào BloodLink</h1>
-				<p className="text-gray-600">Đăng nhập chung (Fallback)</p>
+				<h1 className="text-2xl font-bold">Đăng nhập Quản trị viên</h1>
+				<p className="text-gray-600">Truy cập hệ thống với quyền quản trị</p>
 			</div>
 			<div className="grid gap-6">
 				<div className="grid gap-2">
@@ -85,9 +84,9 @@ export function LoginForm({ className, onSwitchToSignup, ...props }: LoginFormPr
 						id="email"
 						name="email"
 						type="email"
-						placeholder="abc@gmail.com"
+						placeholder="admin@bloodlink.com"
 						required
-						className="border-gray-300 focus:border-red-600"
+						className="border-gray-300 focus:border-blue-600"
 					/>
 				</div>
 				<div className="grid gap-2">
@@ -99,11 +98,20 @@ export function LoginForm({ className, onSwitchToSignup, ...props }: LoginFormPr
 						name="password"
 						type="password"
 						required
-						className="border-gray-300 focus:border-red-600"
+						className="border-gray-300 focus:border-blue-600"
 					/>
 				</div>
-				<Button type="submit" className="w-full bg-red-600 hover:bg-red-700" disabled={!isLoaded}>
+				<Button type="submit" className="w-full bg-blue-600 hover:bg-blue-700" disabled={!isLoaded}>
 					Đăng nhập
+				</Button>
+				<Button
+					type="button"
+					variant="outline"
+					className="w-full"
+					disabled={!isLoaded}
+					onClick={() => navigate("/")}
+				>
+					Quay lại trang chủ
 				</Button>
 			</div>
 		</form>
