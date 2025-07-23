@@ -1,6 +1,6 @@
 import { createBrowserRouter, Navigate } from "react-router-dom";
 
-import Dashboard from "@/pages/admin/dashboard/Dashboard";
+import Dashboard from "@/pages/admin/Dashboard";
 import AdminLoginPage from "@/pages/AdminLogin";
 import BloodUnitManagement from "@/pages/doctor/BloodUnitManagement";
 import Donation from "@/pages/doctor/Donation";
@@ -15,7 +15,6 @@ import { SignedIn, SignedOut } from "@clerk/clerk-react";
 import AdminLayout from "./layouts/AdminLayout";
 import StaffLayout from "./layouts/StaffLayout";
 import AdminProfile from "./pages/admin/AdminProfile";
-import BloodStock from "./pages/admin/BloodStock";
 import CampaignList from "./pages/admin/CampaignList";
 import UserList from "./pages/admin/UserList";
 import BloodUnitHistory from "./pages/doctor/BloodUnitHistory";
@@ -53,10 +52,6 @@ export const router = createBrowserRouter([
 			{
 				path: "userlist",
 				element: <UserList />,
-			},
-			{
-				path: "bloodstock",
-				element: <BloodStock />,
 			},
 			{
 				path: "adminprofile",
