@@ -52,7 +52,7 @@ export function AdminLoginForm({ className, onSwitchToSignup, ...props }: AdminL
 						const role = res.data.data.account.role;
 
 						if (role === AccountRole.Admin) {
-							navigate("/admin");
+							navigate("/admin/dashboard");
 						} else {
 							console.error("Vai trò không phù hợp với đăng nhập admin:", role);
 							toast.error("Tài khoản này không có quyền truy cập admin. Vui lòng kiểm tra lại.");
