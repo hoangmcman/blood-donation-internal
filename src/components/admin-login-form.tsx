@@ -44,7 +44,7 @@ export function AdminLoginForm({ className, onSwitchToSignup, ...props }: AdminL
 				// Đợi một chút để đảm bảo dữ liệu người dùng được tải
 				setTimeout(async () => {
 					try {
-						const res = await api.get("/staffs/me");
+						const res = await api.get("/admins/me");
 						const role = res.data?.data?.role;
 
 						if (role === "admin") {

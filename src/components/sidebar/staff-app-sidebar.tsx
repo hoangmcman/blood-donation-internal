@@ -47,7 +47,7 @@ const data = {
     },
     {
       title: "Chiến dịch hiến máu",
-      url: "/staff",
+      url: "/staff/campaign",
       icon: FlagTriangleRight,
       roles: ["doctor"], // Only for doctor
     },
@@ -62,12 +62,6 @@ const data = {
       url: "/staff/emergency-request",
       icon: FileClock,
       roles: ["staff"], // Only for staff (replacing Lịch sử đơn vị máu)
-    },
-    {
-      title: "Quản lý mẫu đơn hiến máu",
-      url: "/staff/donationresulttemplate",
-      icon: Newspaper,
-      roles: ["staff"],
     },
     {
       title: "Danh sách bài viết",

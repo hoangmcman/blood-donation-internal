@@ -1,16 +1,16 @@
-"use client";
+"use client"
 
+import * as React from "react"
 import {
-	ChevronLeftIcon,
-	ChevronRightIcon,
-	ChevronsLeftIcon,
-	ChevronsRightIcon,
-	MoreVerticalIcon,
-} from "lucide-react";
-import * as React from "react";
-
-import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
+  type SortingState,
+  type VisibilityState,
+  flexRender,
+  getCoreRowModel,
+  getPaginationRowModel,
+  getSortedRowModel,
+  useReactTable,
+  type ColumnDef,
+} from "@tanstack/react-table"
 import {
   ChevronLeftIcon,
   ChevronRightIcon,
@@ -23,14 +23,11 @@ import { Toaster } from "@/components/ui/sonner"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import {
-	Table,
-	TableBody,
-	TableCell,
-	TableHead,
-	TableHeader,
-	TableRow,
-} from "@/components/ui/table";
-import { DonationResultTemplate, Item } from "@/interfaces/donation";
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu"
 import {
   Table,
   TableBody,
@@ -191,13 +188,13 @@ export default function StaffDonationResultList({ }: { donationResultId: string 
     pageCount: data?.data?.meta.totalPages,
   })
 
-	if (isLoading) {
-		return <div>Đang tải...</div>;
-	}
+  if (isLoading) {
+    return <div>Đang tải...</div>
+  }
 
-	if (error) {
-		return <div>Lỗi: {error.message}</div>;
-	}
+  if (error) {
+    return <div>Lỗi: {error.message}</div>
+  }
 
   return (
     <div className="w-full p-4">
