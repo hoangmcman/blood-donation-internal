@@ -17,7 +17,7 @@ export default function AdminLoginPage() {
 		if (!isLoaded) return; // Chờ Clerk load xong
 
 		if (isSignedIn) {
-			navigate("/admin", { replace: true }); // Nếu đã đăng nhập thì redirect về admin dashboard
+			navigate("/admin/dashboard", { replace: true }); // Nếu đã đăng nhập thì redirect về admin dashboard
 		} else {
 			setShouldRender(true); // Cho phép render login page nếu chưa đăng nhập
 		}
