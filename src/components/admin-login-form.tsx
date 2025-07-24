@@ -1,6 +1,7 @@
 "use client";
 
 import type React from "react";
+import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { toast } from "sonner";
 
@@ -8,6 +9,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import api from "@/config/api";
+import { AccountRole, GetAdminProfileResponseData } from "@/interfaces/account";
 import { cn } from "@/lib/utils";
 import { useSignIn, useUser } from "@clerk/clerk-react";
 
@@ -19,6 +21,7 @@ export function AdminLoginForm({ className, onSwitchToSignup, ...props }: AdminL
 	const { isLoaded, signIn, setActive } = useSignIn();
 	useUser();
 	const navigate = useNavigate();
+	const [isLoading, setIsLoading] = useState(false);
 
 	const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
 		e.preventDefault();
@@ -27,6 +30,7 @@ export function AdminLoginForm({ className, onSwitchToSignup, ...props }: AdminL
 			return;
 		}
 
+		setIsLoading(true);
 		const formData = new FormData(e.currentTarget);
 		const email = formData.get("email") as string;
 		const password = formData.get("password") as string;
@@ -44,10 +48,10 @@ export function AdminLoginForm({ className, onSwitchToSignup, ...props }: AdminL
 				// Đợi một chút để đảm bảo dữ liệu người dùng được tải
 				setTimeout(async () => {
 					try {
-						const res = await api.get("/staffs/me");
-						const role = res.data?.data?.role;
+						const res = await api.get<GetAdminProfileResponseData>("/admins/me");
+						const role = res.data.data.account.role;
 
-						if (role === "admin") {
+						if (role === AccountRole.Admin) {
 							navigate("/admin");
 						} else {
 							console.error("Vai trò không phù hợp với đăng nhập admin:", role);
@@ -59,15 +63,19 @@ export function AdminLoginForm({ className, onSwitchToSignup, ...props }: AdminL
 						console.error("Không thể lấy vai trò người dùng:", error);
 						toast.error("Không thể xác thực vai trò người dùng. Vui lòng thử lại.");
 						navigate("/");
+					} finally {
+						setIsLoading(false);
 					}
 				}, 100);
 			} else {
 				console.error("Đăng nhập thất bại:", signInAttempt);
 				toast.error("Đăng nhập thất bại. Vui lòng kiểm tra thông tin đăng nhập.");
+				setIsLoading(false);
 			}
 		} catch (err) {
 			console.error("Lỗi trong quá trình đăng nhập:", err);
 			toast.error("Đã xảy ra lỗi trong quá trình đăng nhập. Vui lòng thử lại.");
+			setIsLoading(false);
 		}
 	};
 
@@ -101,8 +109,12 @@ export function AdminLoginForm({ className, onSwitchToSignup, ...props }: AdminL
 						className="border-gray-300 focus:border-blue-600"
 					/>
 				</div>
-				<Button type="submit" className="w-full bg-blue-600 hover:bg-blue-700" disabled={!isLoaded}>
-					Đăng nhập
+				<Button
+					type="submit"
+					className="w-full bg-blue-600 hover:bg-blue-700"
+					disabled={!isLoaded || isLoading}
+				>
+					{isLoading ? "Đang đăng nhập..." : "Đăng nhập"}
 				</Button>
 				<Button
 					type="button"
