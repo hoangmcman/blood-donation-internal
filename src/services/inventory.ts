@@ -10,27 +10,27 @@ import {
   SeparateComponentsResponse,
 } from "@/interfaces/inventory";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { GetAllBloodUnitsParams } from "@/interfaces/inventory";
 
 import api from "../config/api";
 
-// Update GetAllBloodUnitsParams to include filtering parameters
-export interface GetAllBloodUnitsParams {
-  bloodGroup?: string;
-  rh?: string;
-  bloodTypeComponent?: string;
-  page?: number;
-  limit?: number;
-  status?: string;
-  search?: string;
-}
-
 // BloodUnit CRUD Operations
-export const getBloodUnits = async (params: GetAllBloodUnitsParams): Promise<BloodUnitResponse> => {
+export const getBloodUnits = async (
+  params: GetAllBloodUnitsParams
+): Promise<BloodUnitResponse> => {
   const response = await api.get<BloodUnitResponse>("/inventory/blood-units", {
-    params,
+    params: {
+      page: params.page,
+      limit: params.limit,
+      bloodGroup: params.bloodType,
+      status: params.status,
+      expired: params.expired,
+      bloodComponentType: params.bloodComponentType,
+    },
   });
   return response.data;
 };
+
 
 export const useGetBloodUnits = (params: GetAllBloodUnitsParams) => {
   return useQuery({
