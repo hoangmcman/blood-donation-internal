@@ -6,7 +6,6 @@ import BloodUnitManagement from "@/pages/doctor/BloodUnitManagement";
 import Donation from "@/pages/doctor/Donation";
 import StaffCampaignList from "@/pages/doctor/StaffCampaignList";
 import HomePage from "@/pages/Home";
-import GeneralLoginPage from "@/pages/Login";
 import BlogList from "@/pages/staff/BlogList";
 import EmergencyRequestList from "@/pages/staff/EmergencyRequestList";
 import StaffLoginPage from "@/pages/StaffLogin";
@@ -43,6 +42,7 @@ export const router = createBrowserRouter([
 		children: [
 			{
 				index: true,
+				path: "dashboard",
 				element: <Dashboard />,
 			},
 			{
@@ -114,10 +114,6 @@ export const router = createBrowserRouter([
 				element: <EmergencyRequestList />,
 			},
 		],
-	},
-	{
-		path: "/login",
-		element: <GeneralLoginPage />,
 	},
 	{
 		path: "/admin/login",
