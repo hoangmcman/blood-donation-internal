@@ -31,10 +31,10 @@ export function StaffNavUser() {
 		return null; // Return null if user is not loaded yet
 	}
 
-	const handleSignOut = async () => {
-		await signOut({ redirectUrl: "/staff/login" }); // Redirect to /staff/login after signing out
-		navigate("/staff/login"); // Ensure client-side navigation to /staff/login
-	};
+  const handleSignOut = async () => {
+    await signOut({ redirectUrl: '/staff/login' }); // Redirect to /login after signing out
+    navigate("/staff/login"); // Ensure client-side navigation to /login
+  };
 
 	const handleViewProfile = () => {
 		navigate("/staff/staffprofile"); // Redirect to staff profile page

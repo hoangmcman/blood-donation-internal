@@ -73,6 +73,39 @@ export interface DonorStats {
   returningDonors: number;
 }
 
+export interface Customer {
+  id: string;
+  createdAt: string;
+  updatedAt: string;
+  account: {
+    id: string;
+    createdAt: string;
+    updatedAt: string;
+    email: string;
+    role: string;
+  };
+  bloodType?: {
+    group: string;
+    rh: string;
+  };
+  firstName: string;
+  lastName: string;
+  gender: string;
+  dateOfBirth: string;
+  phone: string;
+  citizenId: string;
+  longitude?: string;
+  latitude?: string;
+  wardCode?: string;
+  districtCode?: string;
+  provinceCode?: string;
+  wardName?: string;
+  districtName?: string;
+  provinceName?: string;
+  lastDonationDate?: string;
+  status: string;
+}
+
 export interface PaginationMeta {
   page: number;
   limit: number;
@@ -186,5 +219,48 @@ export const useGetDonorStats = (startDate: string, endDate: string) => {
   return useQuery({
     queryKey: ['donorStats', startDate, endDate],
     queryFn: () => getDonorStats(startDate, endDate),
+  });
+};
+
+// New API Operations for Customers
+export const getCustomerList = async (page: number, limit: number): Promise<ApiResponse<{
+  customers: Customer[];
+  total: number;
+}>> => {
+  const response = await api.get<ApiResponse<{
+    customers: Customer[];
+    total: number;
+  }>>('/customers/list', {
+    params: { page, limit },
+  });
+  return response.data;
+};
+
+export const useGetCustomerList = (page: number, limit: number) => {
+  return useQuery({
+    queryKey: ['customerList', page, limit],
+    queryFn: () => getCustomerList(page, limit),
+  });
+};
+
+export const getCustomerStats = async (): Promise<ApiResponse<{
+  total: number;
+  withBloodType: number;
+  withLocation: number;
+  nextThisMonth: number;
+}>> => {
+  const response = await api.get<ApiResponse<{
+    total: number;
+    withBloodType: number;
+    withLocation: number;
+    nextThisMonth: number;
+  }>>('/customers/stats');
+  return response.data;
+};
+
+export const useGetCustomerStats = () => {
+  return useQuery({
+    queryKey: ['customerStats'],
+    queryFn: () => getCustomerStats(),
   });
 };
