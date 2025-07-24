@@ -13,6 +13,7 @@ import {
 } from "lucide-react";
 import * as React from "react";
 import { toast } from "sonner";
+import { useEffect, useState } from "react";
 
 import {
 	AlertDialog,
@@ -32,6 +33,14 @@ import {
 	DropdownMenuItem,
 	DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import { Input } from "@/components/ui/input";
+import {
+	Select,
+	SelectContent,
+	SelectItem,
+	SelectTrigger,
+	SelectValue,
+} from "@/components/ui/select";
 import { Toaster } from "@/components/ui/sonner";
 import {
 	Table,
@@ -185,15 +194,34 @@ function CampaignActions({ campaign }: CampaignActionsProps) {
 }
 
 export default function CampaignList() {
-	const [sorting, setSorting] = React.useState<SortingState>([]);
-	const [columnVisibility, setColumnVisibility] = React.useState<VisibilityState>({});
-	const [pagination, setPagination] = React.useState({
+	const [sorting, setSorting] = useState<SortingState>([]);
+	const [columnVisibility, setColumnVisibility] = useState<VisibilityState>({});
+	const [pagination, setPagination] = useState({
 		pageIndex: 0,
 		pageSize: 10,
 	});
-	const [showCreateDialog, setShowCreateDialog] = React.useState(false);
+	const [showCreateDialog, setShowCreateDialog] = useState(false);
+	const [statusFilter, setStatusFilter] = useState<string>("active");
+	const [searchQuery, setSearchQuery] = useState<string>("");
+	const [debouncedSearch, setDebouncedSearch] = useState<string>("");
+
+	// Debounce search input
+	useEffect(() => {
+		const timer = setTimeout(() => {
+			setDebouncedSearch(searchQuery);
+		}, 500);
+
+		return () => clearTimeout(timer);
+	}, [searchQuery]);
+
+	// Reset pagination when filters change
+	useEffect(() => {
+		setPagination((prev) => ({ ...prev, pageIndex: 0 }));
+	}, [statusFilter, debouncedSearch]);
 
 	const { data, isLoading, error } = useGetCampaigns({
+		search: debouncedSearch,
+		status: statusFilter as any,
 		page: pagination.pageIndex + 1,
 		limit: pagination.pageSize,
 	});
@@ -229,11 +257,47 @@ export default function CampaignList() {
 		<div className="w-full p-4">
 			<div className="flex justify-between items-center mb-4">
 				<h1 className="text-2xl font-bold">Quản lý chiến dịch</h1>
-				<Button onClick={() => setShowCreateDialog(true)}>
-					<PlusIcon className="h-4 w-4 mr-2" />
-					Tạo chiến dịch mới
-				</Button>
 			</div>
+
+			{/* Filter Section */}
+			<div className="flex flex-col sm:flex-row gap-4 mb-4 items-center">
+				<div className="flex-1">
+					<Input
+						placeholder="Tìm kiếm theo tên, mô tả hoặc địa điểm..."
+						value={searchQuery}
+						onChange={(e) => setSearchQuery(e.target.value)}
+						className="max-w-sm"
+					/>
+				</div>
+				<div className="flex gap-2">
+					<Select value={statusFilter} onValueChange={setStatusFilter}>
+						<SelectTrigger className="w-[180px]">
+							<SelectValue placeholder="Chọn trạng thái" />
+						</SelectTrigger>
+						<SelectContent>
+							<SelectItem value="active">Hoạt động</SelectItem>
+							<SelectItem value="not_started">Chưa bắt đầu</SelectItem>
+							<SelectItem value="ended">Đã kết thúc</SelectItem>
+						</SelectContent>
+					</Select>
+					<Button onClick={() => setShowCreateDialog(true)}>
+						<PlusIcon className="h-4 w-4 mr-2" />
+						Tạo chiến dịch mới
+					</Button>
+					{(searchQuery || statusFilter !== "active") && (
+						<Button
+							variant="outline"
+							onClick={() => {
+								setSearchQuery("");
+								setStatusFilter("active");
+							}}
+						>
+							Xóa bộ lọc
+						</Button>
+					)}
+				</div>
+			</div>
+
 			<div className="rounded-md border">
 				<Table>
 					<TableHeader>
@@ -263,7 +327,9 @@ export default function CampaignList() {
 						) : (
 							<TableRow>
 								<TableCell colSpan={columns.length} className="h-24 text-center">
-									Không tìm thấy chiến dịch nào.
+									{searchQuery || statusFilter !== "active"
+										? `Không tìm thấy chiến dịch nào với bộ lọc hiện tại.`
+										: "Không tìm thấy chiến dịch nào."}
 								</TableCell>
 							</TableRow>
 						)}
@@ -272,7 +338,12 @@ export default function CampaignList() {
 			</div>
 			<div className="flex items-center justify-end space-x-2 py-4">
 				<div className="flex-1 text-sm text-muted-foreground">
-					Trang {table.getState().pagination.pageIndex + 1} / {table.getPageCount()}
+					{data?.data.meta && (
+						<span>
+							Hiển thị {data.data.meta.total} chiến dịch • Trang{" "}
+							{table.getState().pagination.pageIndex + 1} / {table.getPageCount()}
+						</span>
+					)}
 				</div>
 				<div className="space-x-2">
 					<Button

@@ -1,5 +1,6 @@
 "use client"
 
+import { Loader2Icon } from "lucide-react"
 import { useForm } from "react-hook-form"
 import { zodResolver } from "@hookform/resolvers/zod"
 import * as z from "zod"
@@ -50,6 +51,15 @@ interface EditCampaignDialogProps {
   }
 }
 
+function ButtonLoading() {
+  return (
+    <Button size="sm" disabled className="col-span-2">
+      <Loader2Icon className="animate-spin mr-2 h-4 w-4" />
+      Vui lòng chờ
+    </Button>
+  )
+}
+
 export function EditCampaignDialog({ open, onOpenChange, campaign }: EditCampaignDialogProps) {
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
@@ -68,7 +78,6 @@ export function EditCampaignDialog({ open, onOpenChange, campaign }: EditCampaig
   const updateMutation = useUpdateCampaign()
 
   const onSubmit = async (values: z.infer<typeof formSchema>) => {
-    // Cross-field validation for bloodCollectionDate
     const start = new Date(values.startDate);
     const end = new Date(values.endDate || values.startDate);
     const bloodDate = new Date(values.bloodCollectionDate);
@@ -199,7 +208,11 @@ export function EditCampaignDialog({ open, onOpenChange, campaign }: EditCampaig
                 </FormItem>
               )}
             />
-            <Button type="submit" className="col-span-2">Cập nhật chiến dịch</Button>
+            {updateMutation.isPending ? (
+              <ButtonLoading />
+            ) : (
+              <Button type="submit" className="col-span-2">Cập nhật chiến dịch</Button>
+            )}
           </form>
         </Form>
       </DialogContent>

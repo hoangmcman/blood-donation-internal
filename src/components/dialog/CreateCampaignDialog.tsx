@@ -1,5 +1,6 @@
 "use client"
 
+import { Loader2Icon } from "lucide-react"
 import { useForm } from "react-hook-form"
 import { zodResolver } from "@hookform/resolvers/zod"
 import * as z from "zod"
@@ -39,6 +40,15 @@ interface CreateCampaignDialogProps {
   onOpenChange: (open: boolean) => void
 }
 
+function ButtonLoading() {
+  return (
+    <Button size="sm" disabled className="col-span-2">
+      <Loader2Icon className="animate-spin mr-2 h-4 w-4" />
+      Vui lòng chờ
+    </Button>
+  )
+}
+
 export function CreateCampaignDialog({ open, onOpenChange }: CreateCampaignDialogProps) {
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
@@ -57,7 +67,6 @@ export function CreateCampaignDialog({ open, onOpenChange }: CreateCampaignDialo
   const createMutation = useCreateCampaign()
 
   const onSubmit = async (values: z.infer<typeof formSchema>) => {
-    // Cross-field validation for bloodCollectionDate
     const start = new Date(values.startDate);
     const end = new Date(values.endDate || values.startDate);
     const bloodDate = new Date(values.bloodCollectionDate);
@@ -68,7 +77,6 @@ export function CreateCampaignDialog({ open, onOpenChange }: CreateCampaignDialo
       return;
     }
 
-    // Determine status based on current date
     const currentDate = new Date();
     let status: "not_started" | "active" | "ended";
     if (currentDate < start) {
@@ -200,7 +208,11 @@ export function CreateCampaignDialog({ open, onOpenChange }: CreateCampaignDialo
                 </FormItem>
               )}
             />
-            <Button type="submit" className="col-span-2">Tạo chiến dịch</Button>
+            {createMutation.isPending ? (
+              <ButtonLoading />
+            ) : (
+              <Button type="submit" className="col-span-2">Tạo chiến dịch</Button>
+            )}
           </form>
         </Form>
       </DialogContent>
