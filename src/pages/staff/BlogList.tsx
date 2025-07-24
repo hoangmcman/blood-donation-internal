@@ -1,6 +1,7 @@
 "use client"
 
 import * as React from "react"
+import { useEffect, useState } from "react"
 import {
   type ColumnDef,
   type SortingState,
@@ -51,6 +52,14 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog"
 import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select"
+import { Input } from "@/components/ui/input";
+import {
   useGetBlogs,
   useDeleteBlog,
   type Blog,
@@ -63,10 +72,6 @@ const columns: ColumnDef<Blog, any>[] = [
   {
     accessorKey: "title",
     header: "Tiêu đề",
-  },
-  {
-    accessorKey: "excerpt",
-    header: "Tóm tắt",
   },
   {
     accessorKey: "publishedAt",
@@ -189,18 +194,37 @@ function BlogActions({ blog }: BlogActionsProps) {
 }
 
 export default function BlogList() {
-  const [sorting, setSorting] = React.useState<SortingState>([])
-  const [columnVisibility, setColumnVisibility] = React.useState<VisibilityState>({})
-  const [pagination, setPagination] = React.useState({
+  const [sorting, setSorting] = useState<SortingState>([])
+  const [columnVisibility, setColumnVisibility] = useState<VisibilityState>({})
+  const [pagination, setPagination] = useState({
     pageIndex: 0,
     pageSize: 10,
   })
-  const [showCreateDialog, setShowCreateDialog] = React.useState(false)
+  const [showCreateDialog, setShowCreateDialog] = useState(false)
+  const [statusFilter, setStatusFilter] = useState<string>("published")
+  const [searchQuery, setSearchQuery] = useState<string>("")
+  const [debouncedSearch, setDebouncedSearch] = useState<string>("")
 
-  const { data, isLoading, error } = useGetBlogs(
-    Number(pagination.pageIndex) + 1,
-    Number(pagination.pageSize)
-  )
+  // Debounce search input
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setDebouncedSearch(searchQuery)
+    }, 500)
+
+    return () => clearTimeout(timer)
+  }, [searchQuery])
+
+  // Reset pagination when filters change
+  useEffect(() => {
+    setPagination((prev) => ({ ...prev, pageIndex: 0 }))
+  }, [statusFilter, debouncedSearch])
+
+  const { data, isLoading, error } = useGetBlogs({
+    search: debouncedSearch,
+    status: statusFilter,
+    page: pagination.pageIndex + 1,
+    limit: pagination.pageSize,
+  })
 
   const table = useReactTable({
     data: data?.data.data || [],
@@ -238,6 +262,39 @@ export default function BlogList() {
           Tạo bài blog mới
         </Button>
       </div>
+      <div className="flex flex-col sm:flex-row gap-4 mb-4 items-center">
+        <div className="flex-1">
+          <Input
+            placeholder="Tìm kiếm theo tiêu đề hoặc tóm tắt..."
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            className="max-w-sm"
+          />
+        </div>
+        <div className="flex gap-2">
+          <Select value={statusFilter} onValueChange={setStatusFilter}>
+            <SelectTrigger className="w-[180px]">
+              <SelectValue placeholder="Chọn trạng thái" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="published">Đã xuất bản</SelectItem>
+              <SelectItem value="draft">Nháp</SelectItem>
+              <SelectItem value="archived">Lưu trữ</SelectItem>
+            </SelectContent>
+          </Select>
+          {(searchQuery || statusFilter !== "published") && (
+            <Button
+              variant="outline"
+              onClick={() => {
+                setSearchQuery("")
+                setStatusFilter("published")
+              }}
+            >
+              Xóa bộ lọc
+            </Button>
+          )}
+        </div>
+      </div>
       <div className="rounded-md border">
         <Table>
           <TableHeader>
@@ -267,7 +324,9 @@ export default function BlogList() {
             ) : (
               <TableRow>
                 <TableCell colSpan={columns.length} className="h-24 text-center">
-                  Không tìm thấy bài blog nào.
+                  {searchQuery || statusFilter !== "published"
+                    ? "Không tìm thấy bài blog nào với bộ lọc hiện tại."
+                    : "Không tìm thấy bài blog nào."}
                 </TableCell>
               </TableRow>
             )}
@@ -276,8 +335,11 @@ export default function BlogList() {
       </div>
       <div className="flex items-center justify-end space-x-2 py-4">
         <div className="flex-1 text-sm text-muted-foreground">
-          Trang {table.getState().pagination.pageIndex + 1} /{' '}
-          {table.getPageCount()}
+          {data?.data.meta && (
+            <span>
+              Hiển thị {data.data.meta.total} bài blog • Trang {table.getState().pagination.pageIndex + 1} / {table.getPageCount()}
+            </span>
+          )}
         </div>
         <div className="space-x-2">
           <Button

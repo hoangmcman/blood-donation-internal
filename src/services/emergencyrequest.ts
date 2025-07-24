@@ -175,21 +175,38 @@ export const useGetEmergencyRequestById = (id: string) => {
 	});
 };
 
-export const getEmergencyRequests = async (
-	page: number = 1,
-	limit: number = 10
-): Promise<EmergencyRequestResponse> => {
-	const response = await api.get<EmergencyRequestResponse>("/emergency-requests", {
-		params: { page, limit },
-	});
-	return response.data;
+export const getEmergencyRequests = async ({
+  page = 1,
+  limit = 10,
+  status,
+  search,
+}: {
+  page?: number;
+  limit?: number;
+  status?: string;
+  search?: string;
+}): Promise<EmergencyRequestResponse> => {
+  const response = await api.get<EmergencyRequestResponse>("/emergency-requests", {
+    params: { page, limit, status, search },
+  });
+  return response.data;
 };
 
-export const useGetEmergencyRequests = (page: number = 1, limit: number = 10) => {
-	return useQuery({
-		queryKey: ["emergencyRequests", page, limit],
-		queryFn: () => getEmergencyRequests(page, limit),
-	});
+export const useGetEmergencyRequests = ({
+  page = 1,
+  limit = 10,
+  status,
+  search,
+}: {
+  page?: number;
+  limit?: number;
+  status?: string;
+  search?: string;
+}) => {
+  return useQuery({
+    queryKey: ["emergencyRequests", page, limit, status, search],
+    queryFn: () => getEmergencyRequests({ page, limit, status, search }),
+  });
 };
 
 export const approveEmergencyRequest = async (

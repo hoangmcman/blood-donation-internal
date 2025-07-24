@@ -7,9 +7,8 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog"
 import { Button } from "@/components/ui/button"
-import { useApproveEmergencyRequest } from "../../services/emergencyrequest"
+import { useApproveEmergencyRequest, useGetEmergencyRequestById } from "../../services/emergencyrequest"
 import { toast } from "sonner"
-import { useGetEmergencyRequestLogById } from "../../services/emergencyrequest"
 
 interface ApproveEmergencyRequestDialogProps {
   open: boolean
@@ -18,14 +17,14 @@ interface ApproveEmergencyRequestDialogProps {
 }
 
 export function ApproveEmergencyRequestDialog({ open, onOpenChange, requestId }: ApproveEmergencyRequestDialogProps) {
-  const { data, isLoading, error } = useGetEmergencyRequestLogById(requestId)
+  const { data, isLoading, error } = useGetEmergencyRequestById(requestId)
   const { mutate } = useApproveEmergencyRequest()
 
   const handleApprove = () => {
-    if (data?.data?.emergencyRequest) {
+    if (data?.data) {
       const payload = {
-        bloodUnitId: data.data.emergencyRequest.bloodUnit || "",
-        usedVolume: data.data.emergencyRequest.usedVolume.toString(),
+        bloodUnitId: data.data.bloodUnit || "",
+        usedVolume: data.data.usedVolume.toString(),
       }
       mutate(
         { id: requestId, payload },
@@ -49,7 +48,7 @@ export function ApproveEmergencyRequestDialog({ open, onOpenChange, requestId }:
           <DialogHeader>
             <DialogTitle>Bạn đang tính duyệt một yêu cầu, hãy kiểm tra thông tin trước khi duyệt</DialogTitle>
           </DialogHeader>
-          <div>Loading...</div>
+          <div>Đang tải...</div>
         </DialogContent>
       </Dialog>
     )
@@ -62,13 +61,13 @@ export function ApproveEmergencyRequestDialog({ open, onOpenChange, requestId }:
           <DialogHeader>
             <DialogTitle>Bạn đang tính duyệt một yêu cầu, hãy kiểm tra thông tin trước khi duyệt</DialogTitle>
           </DialogHeader>
-          <div>Error: {error?.message || "Failed to load request details"}</div>
+          <div>Lỗi: {error?.message || "Không thể tải chi tiết yêu cầu"}</div>
         </DialogContent>
       </Dialog>
     )
   }
 
-  const { bloodUnit, usedVolume } = data.data.emergencyRequest
+  const { bloodUnit, usedVolume } = data.data
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -79,7 +78,7 @@ export function ApproveEmergencyRequestDialog({ open, onOpenChange, requestId }:
         <div className="space-y-4">
           <div>
             <label className="text-sm font-medium">Mã đơn vị máu</label>
-            <p className="text-sm text-gray-900">{bloodUnit || "N/A"}</p>
+            <p className="text-sm text-gray-900">{bloodUnit || "Không có"}</p>
           </div>
           <div>
             <label className="text-sm font-medium">Dung tích sử dụng (ml)</label>
