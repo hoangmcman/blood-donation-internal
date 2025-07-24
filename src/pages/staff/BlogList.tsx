@@ -79,6 +79,15 @@ const columns: ColumnDef<Blog, any>[] = [
     cell: ({ row }) => new Date(row.getValue("publishedAt")).toLocaleDateString('vi-VN'),
   },
   {
+    accessorKey: "imageUrl",
+    header: "Hình ảnh",
+    cell: ({ row }) => (
+      <a href={row.getValue("imageUrl")} target="_blank" rel="noopener noreferrer">
+        Xem Hình ảnh
+      </a>
+    ),
+  },
+  {
     accessorKey: "status",
     header: "Trạng thái",
     cell: ({ row }) => {
@@ -103,15 +112,6 @@ const columns: ColumnDef<Blog, any>[] = [
         </Badge>
       )
     },
-  },
-  {
-    accessorKey: "imageUrl",
-    header: "Hình ảnh",
-    cell: ({ row }) => (
-      <a href={row.getValue("imageUrl")} target="_blank" rel="noopener noreferrer">
-        Xem Hình ảnh
-      </a>
-    ),
   },
   {
     id: "actions",

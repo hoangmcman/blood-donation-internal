@@ -52,6 +52,7 @@ import { ViewEmergencyRequestDetail } from "@/components/dialog/ViewEmergencyReq
 import { ApproveEmergencyRequestDialog } from "@/components/dialog/ApproveEmergencyRequestDialog"
 import { RejectEmergencyRequestDialog } from "@/components/dialog/RejectEmergencyRequestDialog"
 import { RejectAllEmergencyRequestsDialog } from "@/components/dialog/RejectAllEmergencyRequestsDialog"
+import { ViewRequiredBloodUnitsDialog } from "@/components/dialog/ViewRequiredBloodUnitsDialog"
 
 export default function EmergencyRequestList() {
   const [sorting, setSorting] = useState<SortingState>([])
@@ -60,13 +61,15 @@ export default function EmergencyRequestList() {
     pageIndex: 0,
     pageSize: 10,
   })
-  const [selectedRequestId, setSelectedRequestId] = useState<string | null>(null)
   const [approveRequestId, setApproveRequestId] = useState<string | null>(null)
   const [rejectRequestId, setRejectRequestId] = useState<string | null>(null)
   const [rejectAllOpen, setRejectAllOpen] = useState<boolean>(false)
   const [statusFilter, setStatusFilter] = useState<string>("pending")
   const [searchQuery, setSearchQuery] = useState<string>("")
   const [debouncedSearch, setDebouncedSearch] = useState<string>("")
+  const [selectedRequestId, setSelectedRequestId] = useState<string | null>(null) // cho dialog chi tiết
+  const [bloodUnitsRequestId, setBloodUnitsRequestId] = useState<string | null>(null) // cho dialog máu
+  const [showBloodUnitsDialog, setShowBloodUnitsDialog] = useState(false)
 
   // Debounce search input
   useEffect(() => {
@@ -153,8 +156,13 @@ export default function EmergencyRequestList() {
       cell: ({ row }) => {
         const requestId = row.original.id
 
-        const handleShowDetail = () => {
-          setSelectedRequestId(requestId)
+        const handleShowDetail = (type: string, requestId: string) => {
+          if (type === "bloodUnits") {
+            setBloodUnitsRequestId(requestId)
+            setShowBloodUnitsDialog(true)
+          } else {
+            setSelectedRequestId(requestId)
+          }
         }
 
         const handleApprove = () => {
@@ -173,18 +181,24 @@ export default function EmergencyRequestList() {
               </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end">
-              <DropdownMenuItem onClick={handleShowDetail}>
+              <DropdownMenuItem onClick={() => handleShowDetail("bloodUnits", requestId)}>
                 Xem lượng máu cần thiết
               </DropdownMenuItem>
-              <DropdownMenuItem onClick={handleShowDetail}>
+              <DropdownMenuItem onClick={() => handleShowDetail("details", requestId)}>
                 Xem chi tiết
               </DropdownMenuItem>
-              <DropdownMenuItem onClick={handleApprove}>
-                Duyệt
-              </DropdownMenuItem>
-              <DropdownMenuItem onClick={handleReject}>
-                Từ chối
-              </DropdownMenuItem>
+
+              {/* ✅ Chỉ hiển thị nếu status === pending */}
+              {row.original.status === "pending" && (
+                <>
+                  <DropdownMenuItem onClick={handleApprove}>
+                    Duyệt
+                  </DropdownMenuItem>
+                  <DropdownMenuItem onClick={handleReject}>
+                    Từ chối
+                  </DropdownMenuItem>
+                </>
+              )}
             </DropdownMenuContent>
           </DropdownMenu>
         )
@@ -368,6 +382,14 @@ export default function EmergencyRequestList() {
         bloodGroups={bloodGroups}
         bloodRhs={bloodRhs}
         bloodTypeComponents={bloodTypeComponents}
+      />
+      <ViewRequiredBloodUnitsDialog
+        open={showBloodUnitsDialog}
+        onOpenChange={(open) => {
+          setShowBloodUnitsDialog(open)
+          if (!open) setBloodUnitsRequestId(null)
+        }}
+        requestId={bloodUnitsRequestId || ""}
       />
     </div>
   )

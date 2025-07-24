@@ -113,7 +113,7 @@ export interface EmergencyRequestResponse {
 // Payload Interfaces
 export interface ApproveEmergencyRequestPayload {
 	bloodUnitId: string;
-	usedVolume: string;
+	usedVolume: number;
 }
 
 export interface RejectEmergencyRequestPayload {
