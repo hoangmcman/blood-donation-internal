@@ -41,7 +41,7 @@ const formSchema = z.object({
 type Status = z.infer<typeof formSchema>["status"];
 
 const VALID_TRANSITIONS: Record<Status, Status[]> = {
-	pending: ["rejected", "appointment_confirmed", "customer_cancelled"],
+	pending: ["rejected", "appointment_confirmed"],
 	appointment_confirmed: ["appointment_cancelled", "customer_checked_in"],
 	appointment_cancelled: [],
 	customer_cancelled: [],

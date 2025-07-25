@@ -11,9 +11,8 @@ import {
 	PlusIcon,
 	TrashIcon,
 } from "lucide-react";
-import * as React from "react";
-import { toast } from "sonner";
 import { useEffect, useState } from "react";
+import { toast } from "sonner";
 
 import {
 	AlertDialog,
@@ -41,7 +40,6 @@ import {
 	SelectTrigger,
 	SelectValue,
 } from "@/components/ui/select";
-import { Toaster } from "@/components/ui/sonner";
 import {
 	Table,
 	TableBody,
@@ -124,9 +122,9 @@ interface CampaignActionsProps {
 }
 
 function CampaignActions({ campaign }: CampaignActionsProps) {
-	const [showDeleteDialog, setShowDeleteDialog] = React.useState(false);
-	const [showEditDialog, setShowEditDialog] = React.useState(false);
-	const [showViewDialog, setShowViewDialog] = React.useState(false);
+	const [showDeleteDialog, setShowDeleteDialog] = useState(false);
+	const [showEditDialog, setShowEditDialog] = useState(false);
+	const [showViewDialog, setShowViewDialog] = useState(false);
 	const deleteMutation = useDeleteCampaign();
 
 	const handleDelete = async () => {
@@ -381,7 +379,6 @@ export default function CampaignList() {
 				</div>
 			</div>
 			<CreateCampaignDialog open={showCreateDialog} onOpenChange={setShowCreateDialog} />
-			<Toaster />
 		</div>
 	);
 }

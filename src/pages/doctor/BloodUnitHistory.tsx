@@ -11,7 +11,6 @@ import * as React from "react";
 import { ViewBloodUnitActionDialog } from "@/components/dialog/ViewBloodUnitActionDialog";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Toaster } from "@/components/ui/sonner";
 import {
 	Table,
 	TableBody,
@@ -230,7 +229,6 @@ export default function BloodUnitHistory() {
 					</Button>
 				</div>
 			</div>
-			<Toaster />
 			{dialogActionId && (
 				<ViewBloodUnitActionDialog
 					open={!!dialogActionId}

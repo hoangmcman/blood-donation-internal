@@ -3,7 +3,6 @@
 import { Users } from "lucide-react";
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { Toaster } from "sonner";
 
 import { StaffLoginForm } from "@/components/staff-login-form";
 import { useAuth } from "@clerk/clerk-react";
@@ -52,7 +51,6 @@ export default function StaffLoginPage() {
 					<StaffLoginForm onSwitchToSignup={() => {}} />
 				</div>
 			</div>
-			<Toaster position="top-right" richColors />
 		</div>
 	);
 }
