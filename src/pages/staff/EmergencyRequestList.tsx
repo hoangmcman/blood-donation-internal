@@ -1,6 +1,6 @@
 "use client"
 
-import * as React from "react"
+import { useEffect, useState } from "react"
 import {
   type ColumnDef,
   type SortingState,
@@ -16,6 +16,7 @@ import {
   ChevronRightIcon,
   ChevronsLeftIcon,
   ChevronsRightIcon,
+  MoreHorizontal,
 } from "lucide-react"
 import { Toaster } from "@/components/ui/sonner"
 import { Button } from "@/components/ui/button"
@@ -34,7 +35,15 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
-import { MoreHorizontal } from "lucide-react"
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select"
+import { Input } from "@/components/ui/input";
+
 import {
   useGetEmergencyRequests,
 } from "../../services/emergencyrequest"
@@ -43,29 +52,57 @@ import { ViewEmergencyRequestDetail } from "@/components/dialog/ViewEmergencyReq
 import { ApproveEmergencyRequestDialog } from "@/components/dialog/ApproveEmergencyRequestDialog"
 import { RejectEmergencyRequestDialog } from "@/components/dialog/RejectEmergencyRequestDialog"
 import { RejectAllEmergencyRequestsDialog } from "@/components/dialog/RejectAllEmergencyRequestsDialog"
+import { ViewRequiredBloodUnitsDialog } from "@/components/dialog/ViewRequiredBloodUnitsDialog"
 
 export default function EmergencyRequestList() {
-  const [sorting, setSorting] = React.useState<SortingState>([])
-  const [columnVisibility, setColumnVisibility] = React.useState<VisibilityState>({})
-  const [pagination, setPagination] = React.useState({
+  const [sorting, setSorting] = useState<SortingState>([])
+  const [columnVisibility, setColumnVisibility] = useState<VisibilityState>({})
+  const [pagination, setPagination] = useState({
     pageIndex: 0,
     pageSize: 10,
   })
-  const [selectedRequestId, setSelectedRequestId] = React.useState<string | null>(null)
-  const [approveRequestId, setApproveRequestId] = React.useState<string | null>(null)
-  const [rejectRequestId, setRejectRequestId] = React.useState<string | null>(null)
-  const [rejectAllOpen, setRejectAllOpen] = React.useState<boolean>(false)
+  const [approveRequestId, setApproveRequestId] = useState<string | null>(null)
+  const [rejectRequestId, setRejectRequestId] = useState<string | null>(null)
+  const [rejectAllOpen, setRejectAllOpen] = useState<boolean>(false)
+  const [statusFilter, setStatusFilter] = useState<string>("pending")
+  const [searchQuery, setSearchQuery] = useState<string>("")
+  const [debouncedSearch, setDebouncedSearch] = useState<string>("")
+  const [selectedRequestId, setSelectedRequestId] = useState<string | null>(null) // cho dialog chi tiết
+  const [bloodUnitsRequestId, setBloodUnitsRequestId] = useState<string | null>(null) // cho dialog máu
+  const [showBloodUnitsDialog, setShowBloodUnitsDialog] = useState(false)
 
-  const { data, isLoading, error } = useGetEmergencyRequests(
-    Number(pagination.pageIndex) + 1,
-    Number(pagination.pageSize)
-  )
+  // Debounce search input
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setDebouncedSearch(searchQuery)
+    }, 500)
+
+    return () => clearTimeout(timer)
+  }, [searchQuery])
+
+  // Reset pagination when filters change
+  useEffect(() => {
+    setPagination((prev) => ({ ...prev, pageIndex: 0 }))
+  }, [statusFilter, debouncedSearch])
+
+  const { data, isLoading, error } = useGetEmergencyRequests({
+    search: debouncedSearch,
+    status: statusFilter,
+    page: pagination.pageIndex + 1,
+    limit: pagination.pageSize,
+  })
 
   const bloodGroups = [...new Set(data?.data.data.map((request) => request.bloodType.group) || [])]
   const bloodRhs = [...new Set(data?.data.data.map((request) => request.bloodType.rh) || [])]
   const bloodTypeComponents = [...new Set(data?.data.data.map((request) => request.bloodTypeComponent) || [])]
 
   const columns: ColumnDef<EmergencyRequest, any>[] = [
+    {
+      accessorFn: (row) => row.requestedBy.email,
+      id: "requestedBy",
+      header: "Yêu cầu bởi",
+      cell: ({ row }) => row.original.requestedBy.email,
+    } as ColumnDef<EmergencyRequest, string>,
     {
       accessorFn: (row) => row.id,
       id: "requestId",
@@ -107,12 +144,7 @@ export default function EmergencyRequestList() {
         )
       },
     } as ColumnDef<EmergencyRequest, string>,
-    {
-      accessorFn: (row) => row.requestedBy.email,
-      id: "requestedBy",
-      header: "Yêu cầu bởi",
-      cell: ({ row }) => row.original.requestedBy.email,
-    } as ColumnDef<EmergencyRequest, string>,
+
     {
       accessorKey: "description",
       header: "Ghi chú",
@@ -124,8 +156,13 @@ export default function EmergencyRequestList() {
       cell: ({ row }) => {
         const requestId = row.original.id
 
-        const handleShowDetail = () => {
-          setSelectedRequestId(requestId)
+        const handleShowDetail = (type: string, requestId: string) => {
+          if (type === "bloodUnits") {
+            setBloodUnitsRequestId(requestId)
+            setShowBloodUnitsDialog(true)
+          } else {
+            setSelectedRequestId(requestId)
+          }
         }
 
         const handleApprove = () => {
@@ -144,15 +181,24 @@ export default function EmergencyRequestList() {
               </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end">
-              <DropdownMenuItem onClick={handleShowDetail}>
+              <DropdownMenuItem onClick={() => handleShowDetail("bloodUnits", requestId)}>
+                Xem lượng máu cần thiết
+              </DropdownMenuItem>
+              <DropdownMenuItem onClick={() => handleShowDetail("details", requestId)}>
                 Xem chi tiết
               </DropdownMenuItem>
-              <DropdownMenuItem onClick={handleApprove}>
-                Duyệt
-              </DropdownMenuItem>
-              <DropdownMenuItem onClick={handleReject}>
-                Từ chối
-              </DropdownMenuItem>
+
+              {/* ✅ Chỉ hiển thị nếu status === pending */}
+              {row.original.status === "pending" && (
+                <>
+                  <DropdownMenuItem onClick={handleApprove}>
+                    Duyệt
+                  </DropdownMenuItem>
+                  <DropdownMenuItem onClick={handleReject}>
+                    Từ chối
+                  </DropdownMenuItem>
+                </>
+              )}
             </DropdownMenuContent>
           </DropdownMenu>
         )
@@ -200,6 +246,39 @@ export default function EmergencyRequestList() {
           </Button>
         </div>
       </div>
+      <div className="flex flex-col sm:flex-row gap-4 mb-4 items-center">
+        <div className="flex-1">
+          <Input
+            placeholder="Tìm kiếm theo mã yêu cầu hoặc email..."
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            className="max-w-sm"
+          />
+        </div>
+        <div className="flex gap-2">
+          <Select value={statusFilter} onValueChange={setStatusFilter}>
+            <SelectTrigger className="w-[180px]">
+              <SelectValue placeholder="Chọn trạng thái" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="pending">Đang chờ</SelectItem>
+              <SelectItem value="approved">Đã duyệt</SelectItem>
+              <SelectItem value="rejected">Đã từ chối</SelectItem>
+            </SelectContent>
+          </Select>
+          {(searchQuery || statusFilter !== "pending") && (
+            <Button
+              variant="outline"
+              onClick={() => {
+                setSearchQuery("")
+                setStatusFilter("pending")
+              }}
+            >
+              Xóa bộ lọc
+            </Button>
+          )}
+        </div>
+      </div>
       <div className="rounded-md border">
         <Table>
           <TableHeader>
@@ -229,7 +308,9 @@ export default function EmergencyRequestList() {
             ) : (
               <TableRow>
                 <TableCell colSpan={columns.length} className="h-24 text-center">
-                  Không tìm thấy yêu cầu khẩn cấp.
+                  {searchQuery || statusFilter !== "pending"
+                    ? "Không tìm thấy yêu cầu khẩn cấp nào với bộ lọc hiện tại."
+                    : "Không tìm thấy yêu cầu khẩn cấp."}
                 </TableCell>
               </TableRow>
             )}
@@ -238,8 +319,11 @@ export default function EmergencyRequestList() {
       </div>
       <div className="flex items-center justify-end space-x-2 py-4">
         <div className="flex-1 text-sm text-muted-foreground">
-          Trang {table.getState().pagination.pageIndex + 1} /{' '}
-          {table.getPageCount()}
+          {data?.data.meta && (
+            <span>
+              Hiển thị {data.data.meta.total} yêu cầu • Trang {table.getState().pagination.pageIndex + 1} / {table.getPageCount()}
+            </span>
+          )}
         </div>
         <div className="space-x-2">
           <Button
@@ -298,6 +382,14 @@ export default function EmergencyRequestList() {
         bloodGroups={bloodGroups}
         bloodRhs={bloodRhs}
         bloodTypeComponents={bloodTypeComponents}
+      />
+      <ViewRequiredBloodUnitsDialog
+        open={showBloodUnitsDialog}
+        onOpenChange={(open) => {
+          setShowBloodUnitsDialog(open)
+          if (!open) setBloodUnitsRequestId(null)
+        }}
+        requestId={bloodUnitsRequestId || ""}
       />
     </div>
   )

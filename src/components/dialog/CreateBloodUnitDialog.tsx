@@ -1,16 +1,16 @@
-"use client"
+"use client";
 
 import React from "react";
-import { useForm } from "react-hook-form"
-import { zodResolver } from "@hookform/resolvers/zod"
-import * as z from "zod"
-import { Button } from "@/components/ui/button"
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import * as z from "zod";
+import { Button } from "@/components/ui/button";
 import {
   Dialog,
   DialogContent,
   DialogHeader,
   DialogTitle,
-} from "@/components/ui/dialog"
+} from "@/components/ui/dialog";
 import {
   Form,
   FormControl,
@@ -18,10 +18,10 @@ import {
   FormItem,
   FormLabel,
   FormMessage,
-} from "@/components/ui/form"
-import { useCreateBloodUnit } from "../../services/inventory"
-import { useGetDonationRequestById } from "../../services/donations"
-import { toast } from "sonner"
+} from "@/components/ui/form";
+import { useCreateBloodUnit } from "../../services/inventory";
+import { useGetDonationRequestById } from "../../services/donations";
+import { toast } from "sonner";
 
 const formSchema = z.object({
   bloodGroup: z.string().min(1, { message: "Nhóm máu là bắt buộc" }),
@@ -34,11 +34,15 @@ const formSchema = z.object({
 interface CreateBloodUnitDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  memberId: string;
+  memberId: string; // thực ra đây là donationRequestId
   memberName: string;
 }
 
-export default function CreateBloodUnitDialog({ open, onOpenChange, memberId }: CreateBloodUnitDialogProps) {
+export default function CreateBloodUnitDialog({
+  open,
+  onOpenChange,
+  memberId,
+}: CreateBloodUnitDialogProps) {
   const { data: donationRequest, isLoading } = useGetDonationRequestById(memberId);
 
   const form = useForm<z.infer<typeof formSchema>>({
@@ -64,13 +68,12 @@ export default function CreateBloodUnitDialog({ open, onOpenChange, memberId }: 
     }
   }, [donationRequest, isLoading, form]);
 
-
   const { mutate } = useCreateBloodUnit();
 
   const onSubmit = (values: z.infer<typeof formSchema>) => {
     mutate(
       {
-        memberId,
+        memberId: donationRequest!.donor!.id,
         bloodGroup: values.bloodGroup,
         bloodRh: values.bloodRh,
         bloodVolume: values.bloodVolume,
@@ -83,7 +86,8 @@ export default function CreateBloodUnitDialog({ open, onOpenChange, memberId }: 
           onOpenChange(false);
           form.reset();
         },
-        onError: () => {
+        onError: (err: any) => {
+          console.error(err);
           toast.error("Tạo đơn vị máu thất bại");
         },
       }
@@ -108,7 +112,7 @@ export default function CreateBloodUnitDialog({ open, onOpenChange, memberId }: 
                     <input
                       {...field}
                       className="w-full p-2 border rounded"
-                      disabled={true}
+                      disabled
                     />
                   </FormControl>
                   <FormMessage />
@@ -125,7 +129,7 @@ export default function CreateBloodUnitDialog({ open, onOpenChange, memberId }: 
                     <input
                       {...field}
                       className="w-full p-2 border rounded"
-                      disabled={true}
+                      disabled
                     />
                   </FormControl>
                   <FormMessage />
@@ -181,7 +185,9 @@ export default function CreateBloodUnitDialog({ open, onOpenChange, memberId }: 
                 </FormItem>
               )}
             />
-            <Button type="submit" disabled={isLoading}>Tạo đơn vị máu</Button>
+            <Button type="submit" disabled={isLoading}>
+              Tạo đơn vị máu
+            </Button>
           </form>
         </Form>
       </DialogContent>
