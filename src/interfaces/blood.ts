@@ -21,3 +21,9 @@ export enum BloodComponentType {
 	RED_CELLS = "red_cells",
 	WHOLE_BLOOD = "whole_blood",
 }
+
+export enum BloodComponentTypeOnly {
+	PLASMA = "plasma",
+	PLATELETS = "platelets",
+	RED_CELLS = "red_cells",
+}

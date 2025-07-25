@@ -19,22 +19,24 @@ import {
 	SidebarMenuItem,
 	useSidebar,
 } from "@/components/ui/sidebar";
+import { useStaffProfile } from "@/hooks/use-staff-profile";
 import { useClerk, useUser } from "@clerk/clerk-react";
 
 export function StaffNavUser() {
+	const { data: profile } = useStaffProfile();
 	const { user } = useUser();
 	const { signOut } = useClerk();
 	const navigate = useNavigate();
 	const { isMobile } = useSidebar();
 
-	if (!user) {
+	if (!profile || !user) {
 		return null; // Return null if user is not loaded yet
 	}
 
-  const handleSignOut = async () => {
-    await signOut({ redirectUrl: '/staff/login' }); // Redirect to /login after signing out
-    navigate("/staff/login"); // Ensure client-side navigation to /login
-  };
+	const handleSignOut = async () => {
+		await signOut({ redirectUrl: "/staff/login" }); // Redirect to /login after signing out
+		navigate("/staff/login"); // Ensure client-side navigation to /login
+	};
 
 	const handleViewProfile = () => {
 		navigate("/staff/staffprofile"); // Redirect to staff profile page
@@ -50,13 +52,18 @@ export function StaffNavUser() {
 							className="data-[state=open]:bg-sidebar-accent data-[state=open]:text-sidebar-accent-foreground"
 						>
 							<Avatar className="h-8 w-8 rounded-lg grayscale">
-								<AvatarImage src={user.imageUrl} alt={user.fullName || "User"} />
+								<AvatarImage
+									src={profile.avatar}
+									alt={`${profile.firstName} ${profile.lastName}` || "User"}
+								/>
 								<AvatarFallback className="rounded-lg">
-									{user.firstName ? user.firstName.charAt(0) : "U"}
+									{profile.firstName ? profile.firstName.charAt(0) : "U"}
 								</AvatarFallback>
 							</Avatar>
 							<div className="grid flex-1 text-left text-sm leading-tight">
-								<span className="truncate font-medium">{user.fullName || "User"}</span>
+								<span className="truncate font-medium">
+									{`${profile.firstName} ${profile.lastName}` || "User"}
+								</span>
 								<span className="truncate text-xs text-muted-foreground">
 									{user.primaryEmailAddress?.emailAddress || "No email"}
 								</span>
@@ -73,13 +80,15 @@ export function StaffNavUser() {
 						<DropdownMenuLabel className="p-0 font-normal">
 							<div className="flex items-center gap-2 px-1 py-1.5 text-left text-sm">
 								<Avatar className="h-8 w-8 rounded-lg">
-									<AvatarImage src={user.imageUrl} alt={user.fullName || "User"} />
+									<AvatarImage src={profile.avatar} alt={profile.firstName || "User"} />
 									<AvatarFallback className="rounded-lg">
-										{user.firstName ? user.firstName.charAt(0) : "U"}
+										{profile.firstName ? profile.firstName.charAt(0) : "U"}
 									</AvatarFallback>
 								</Avatar>
 								<div className="grid flex-1 text-left text-sm leading-tight">
-									<span className="truncate font-medium">{user.fullName || "User"}</span>
+									<span className="truncate font-medium">
+										{`${profile.firstName} ${profile.lastName}` || "User"}
+									</span>
 									<span className="truncate text-xs text-muted-foreground">
 										{user.primaryEmailAddress?.emailAddress || "No email"}
 									</span>
