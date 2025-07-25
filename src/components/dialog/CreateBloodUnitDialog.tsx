@@ -21,6 +21,7 @@ import {
 } from "@/components/ui/form"
 import { useCreateBloodUnit } from "../../services/inventory"
 import { useGetDonationRequestById } from "../../services/donations"
+import { useGetDonationResultById } from "../../services/donations"
 import { toast } from "sonner"
 
 const formSchema = z.object({
@@ -39,31 +40,31 @@ interface CreateBloodUnitDialogProps {
 }
 
 export default function CreateBloodUnitDialog({ open, onOpenChange, memberId }: CreateBloodUnitDialogProps) {
-  const { data: donationRequest, isLoading } = useGetDonationRequestById(memberId);
+  const { data: donationRequest, isLoading: isRequestLoading } = useGetDonationRequestById(memberId);
+  const { data: donationResult, isLoading: isResultLoading } = useGetDonationResultById(memberId);
 
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: {
       bloodGroup: "",
       bloodRh: "",
-      bloodVolume: 0,
-      remainingVolume: 0,
+      bloodVolume: 0, // Đảm bảo giá trị mặc định là number
+      remainingVolume: 0, // Đảm bảo giá trị mặc định là number
       expiredDate: "",
     },
   });
 
   React.useEffect(() => {
-    if (donationRequest && !isLoading) {
+    if (donationRequest && !isRequestLoading) {
       form.reset({
         bloodGroup: donationRequest.donor.bloodType?.group || "",
         bloodRh: donationRequest.donor.bloodType?.rh || "",
-        bloodVolume: 0,
-        remainingVolume: 0,
+        bloodVolume: donationResult?.volumeMl ?? 0, // Sử dụng ?? để đảm bảo giá trị number
+        remainingVolume: donationResult?.volumeMl ?? 0, // Sử dụng ?? để đảm bảo giá trị number
         expiredDate: "",
       });
     }
-  }, [donationRequest, isLoading, form]);
-
+  }, [donationRequest, isRequestLoading, donationResult, form]);
 
   const { mutate } = useCreateBloodUnit();
 
@@ -89,6 +90,18 @@ export default function CreateBloodUnitDialog({ open, onOpenChange, memberId }: 
       }
     );
   };
+
+  // Đồng bộ remainingVolume với bloodVolume khi bloodVolume thay đổi
+  React.useEffect(() => {
+    const subscription = form.watch((values, { name }) => {
+      if (name === "bloodVolume") {
+        form.setValue("remainingVolume", values.bloodVolume ?? 0); // Xử lý undefined bằng 0
+      }
+    });
+    return () => subscription.unsubscribe();
+  }, [form]);
+
+  const isLoading = isRequestLoading || isResultLoading;
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -142,8 +155,9 @@ export default function CreateBloodUnitDialog({ open, onOpenChange, memberId }: 
                     <input
                       type="number"
                       {...field}
-                      onChange={(e) => field.onChange(parseInt(e.target.value))}
+                      onChange={(e) => field.onChange(parseInt(e.target.value) || 0)} // Xử lý khi giá trị không hợp lệ
                       className="w-full p-2 border rounded"
+                      disabled={!!donationResult?.volumeMl} // Vô hiệu hóa nếu có volumeMl từ API
                     />
                   </FormControl>
                   <FormMessage />
@@ -160,8 +174,9 @@ export default function CreateBloodUnitDialog({ open, onOpenChange, memberId }: 
                     <input
                       type="number"
                       {...field}
-                      onChange={(e) => field.onChange(parseInt(e.target.value))}
+                      onChange={(e) => field.onChange(parseInt(e.target.value) || 0)} // Xử lý khi giá trị không hợp lệ
                       className="w-full p-2 border rounded"
+                      disabled={true} // Vô hiệu hóa vì đồng bộ với bloodVolume
                     />
                   </FormControl>
                   <FormMessage />

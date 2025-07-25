@@ -1,5 +1,3 @@
-"use client";
-
 import { useEffect } from "react";
 import { useForm } from "react-hook-form";
 import * as z from "zod";
@@ -25,7 +23,9 @@ import { Input } from "@/components/ui/input";
 import { Select, SelectTrigger, SelectContent, SelectItem, SelectValue } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
 
-// ✅ Tạo schema validate
+// ✅ Import API
+import { useGetDonationRequestById, useUpdateDonationRequestResult } from "@/services/donations";
+
 const formSchema = z.object({
   volumeMl: z.coerce.number().min(50, "Thể tích phải ít nhất 50ml"),
   bloodGroup: z.string().min(1, "Chọn nhóm máu"),
@@ -40,9 +40,8 @@ type FormValues = z.infer<typeof formSchema>;
 interface UpdateDonationResultDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  memberId: string; // donationRequestId
+  memberId: string;
   memberName: string;
-  onSubmitResult?: (id: string, data: FormValues) => void;
 }
 
 export default function UpdateDonationResultDialog({
@@ -50,7 +49,6 @@ export default function UpdateDonationResultDialog({
   onOpenChange,
   memberId,
   memberName,
-  onSubmitResult,
 }: UpdateDonationResultDialogProps) {
   const form = useForm<FormValues>({
     resolver: zodResolver(formSchema),
@@ -64,19 +62,56 @@ export default function UpdateDonationResultDialog({
     },
   });
 
+  const { data: donationRequest, isLoading } = useGetDonationRequestById(memberId);
+
+  // ✅ Mutation cập nhật kết quả
+  const { mutate: updateResult, isPending } = useUpdateDonationRequestResult();
+
+  useEffect(() => {
+    if (donationRequest) {
+      form.reset({
+        volumeMl: 0,
+        bloodGroup: donationRequest.donor.bloodType?.group || "",
+        bloodRh: donationRequest.donor.bloodType?.rh || "",
+        notes: "",
+        rejectReason: "",
+        status: "completed",
+      });
+    }
+  }, [donationRequest, form]);
+
   useEffect(() => {
     if (!open) form.reset();
   }, [open, form]);
 
   const handleSubmit = (values: FormValues) => {
-    console.log("✅ Dữ liệu cập nhật kết quả:", values);
-
-    // Gọi API cập nhật
-    onSubmitResult?.(memberId, values);
-
-    toast.success("Cập nhật kết quả hiến máu thành công!");
-    onOpenChange(false);
+    updateResult(
+      {
+        id: memberId,
+        resultData: {
+          volumeMl: values.volumeMl,
+          bloodGroup: values.bloodGroup,
+          bloodRh: values.bloodRh,
+          notes: values.notes,
+          rejectReason: values.rejectReason,
+          status: values.status,
+        },
+      },
+      {
+        onSuccess: () => {
+          toast.success("✅ Cập nhật kết quả hiến máu thành công!");
+          onOpenChange(false);
+        },
+        onError: (err: any) => {
+          toast.error(`❌ Lỗi: ${err.message}`);
+        },
+      }
+    );
   };
+
+  if (isLoading) {
+    return null;
+  }
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -108,7 +143,7 @@ export default function UpdateDonationResultDialog({
               render={({ field }) => (
                 <FormItem>
                   <FormLabel>Nhóm máu</FormLabel>
-                  <Select onValueChange={field.onChange} value={field.value}>
+                  <Select onValueChange={field.onChange} value={field.value} disabled>
                     <FormControl>
                       <SelectTrigger>
                         <SelectValue placeholder="Chọn nhóm máu" />
@@ -133,7 +168,7 @@ export default function UpdateDonationResultDialog({
               render={({ field }) => (
                 <FormItem>
                   <FormLabel>Rh</FormLabel>
-                  <Select onValueChange={field.onChange} value={field.value}>
+                  <Select onValueChange={field.onChange} value={field.value} disabled>
                     <FormControl>
                       <SelectTrigger>
                         <SelectValue placeholder="Chọn Rh" />
@@ -201,8 +236,8 @@ export default function UpdateDonationResultDialog({
               )}
             />
 
-            <Button type="submit" className="w-full">
-              Cập nhật kết quả
+            <Button type="submit" className="w-full" disabled={isPending}>
+              {isPending ? "Đang cập nhật..." : "Cập nhật kết quả"}
             </Button>
           </form>
         </Form>

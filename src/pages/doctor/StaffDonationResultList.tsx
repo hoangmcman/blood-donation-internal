@@ -1,6 +1,6 @@
-"use client"
+"use client";
 
-import * as React from "react"
+import * as React from "react";
 import {
   type SortingState,
   type VisibilityState,
@@ -9,25 +9,25 @@ import {
   getPaginationRowModel,
   getSortedRowModel,
   useReactTable,
-  type ColumnDef,
-} from "@tanstack/react-table"
+} from "@tanstack/react-table";
+import { ColumnDef } from "@tanstack/react-table";
 import {
   ChevronLeftIcon,
   ChevronRightIcon,
   ChevronsLeftIcon,
   ChevronsRightIcon,
   MoreVerticalIcon,
-} from "lucide-react"
-import { useParams } from "react-router-dom"
-import { Toaster } from "@/components/ui/sonner"
-import { Button } from "@/components/ui/button"
-import { Badge } from "@/components/ui/badge"
+} from "lucide-react";
+import { useParams } from "react-router-dom";
+import { Toaster } from "@/components/ui/sonner";
+import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu"
+} from "@/components/ui/dropdown-menu";
 import {
   Table,
   TableBody,
@@ -35,38 +35,24 @@ import {
   TableHead,
   TableHeader,
   TableRow,
-} from "@/components/ui/table"
-import {
-  useGetDonationRequests,
-} from "../../services/campaign"
-import UpdateDonationResultDialog from "../../components/dialog/UpdateDonationResultDialog"
+} from "@/components/ui/table";
 
-interface DonationRequest {
-  id: string
-  donor: {
-    id: string
-    firstName: string
-    lastName: string
-  }
-  campaign: {
-    id: string
-    name: string
-  }
-  amount: number
-  note: string
-  appointmentDate: string
-  currentStatus: "pending" | "rejected" | "completed" | "result_returned" | "appointment_confirmed" | "appointment_cancelled" | "appointment_absent" | "customer_cancelled" | "customer_checked_in"
-  createdAt: string
-  updatedAt: string
-}
+import { useGetDonationRequests } from "../../services/donations";
+import UpdateDonationResultDialog from "../../components/dialog/UpdateDonationResultDialog";
+import { DonationRequest } from "@/interfaces/donation";
+
+
 
 interface DonationRequestActionsProps {
-  donationRequest: DonationRequest
-  onOpenDialog: (memberId: string, memberName: string) => void
+  donationRequest: DonationRequest;
+  onOpenDialog: (memberId: string, memberName: string) => void;
 }
 
-function DonationRequestActions({ donationRequest, onOpenDialog }: DonationRequestActionsProps) {
-  const requestId = donationRequest.id; // lấy id của donation request
+function DonationRequestActions({
+  donationRequest,
+  onOpenDialog,
+}: DonationRequestActionsProps) {
+  const requestId = donationRequest.id;
   const memberName = `${donationRequest.donor.firstName} ${donationRequest.donor.lastName}`;
 
   return (
@@ -78,96 +64,100 @@ function DonationRequestActions({ donationRequest, onOpenDialog }: DonationReque
         </Button>
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end">
-        <DropdownMenuItem
-          onClick={() => onOpenDialog(requestId, memberName)} // đổi sang requestId
-        >
-          Tạo đơn vị máu
+        <DropdownMenuItem onClick={() => onOpenDialog(requestId, memberName)}>
+          Cập nhật kết quả
         </DropdownMenuItem>
       </DropdownMenuContent>
     </DropdownMenu>
   );
 }
 
-export default function StaffDonationResultList({ }: { donationResultId: string }) {
-  const { id } = useParams<{ id: string }>()
-  const [sorting, setSorting] = React.useState<SortingState>([])
-  const [columnVisibility, setColumnVisibility] = React.useState<VisibilityState>({})
+export default function StaffDonationResultList() {
+  const { id } = useParams<{ id: string }>();
+  const [sorting, setSorting] = React.useState<SortingState>([]);
+  const [columnVisibility, setColumnVisibility] =
+    React.useState<VisibilityState>({});
   const [pagination, setPagination] = React.useState({
     pageIndex: 0,
     pageSize: 10,
-  })
-  const [isDialogOpen, setIsDialogOpen] = React.useState(false)
-  const [selectedMember, setSelectedMember] = React.useState<{ id: string; name: string }>({
+  });
+  const [isDialogOpen, setIsDialogOpen] = React.useState(false);
+  const [selectedMember, setSelectedMember] = React.useState<{
+    id: string;
+    name: string;
+  }>({
     id: "",
     name: "",
-  })
+  });
 
-  const columns: ColumnDef<DonationRequest>[] = [
+  const columns: ColumnDef<DonationRequest, any>[] = [
     {
-      accessorKey: "donor.firstName",
+      accessorFn: (row) => row.donor.firstName,
+      id: "firstName",
       header: "Tên người hiến",
-      cell: ({ row }: { row: any }) => row.original.donor.firstName,
+      cell: (info) => info.getValue(),
     },
     {
-      accessorKey: "donor.lastName",
+      accessorFn: (row) => row.donor.lastName,
+      id: "lastName",
       header: "Họ người hiến",
-      cell: ({ row }: { row: any }) => row.original.donor.lastName,
-    },
-    {
-      accessorKey: "amount",
-      header: "Số lượng",
-    },
-    {
-      accessorKey: "note",
-      header: "Ghi chú",
+      cell: (info) => info.getValue(),
     },
     {
       accessorKey: "appointmentDate",
       header: "Ngày hẹn",
-      cell: ({ row }: { row: any }) => new Date(row.getValue("appointmentDate")).toLocaleDateString('vi-VN'),
+      cell: (info) =>
+        new Date(info.getValue() as string).toLocaleDateString("vi-VN"),
     },
     {
       accessorKey: "currentStatus",
       header: "Trạng thái",
-      cell: ({ row }: { row: any }) => {
-        const status = row.getValue("currentStatus") as string
+      cell: (info) => {
+        const status = info.getValue() as string;
         return (
-          <Badge className={status.toLowerCase() === "completed" ? "bg-green-100 text-green-700" : "bg-gray-100 text-gray-700"}>
-            {status.toLowerCase() === "completed" ? "Hoàn thành" : "Không hợp lệ"}
+          <Badge
+            className={
+              status === "completed"
+                ? "bg-green-100 text-green-700"
+                : "bg-gray-100 text-gray-700"
+            }
+          >
+            {status === "completed" ? "Hoàn thành" : "Không hợp lệ"}
           </Badge>
-        )
+        );
       },
     },
     {
       accessorKey: "createdAt",
       header: "Ngày tạo",
-      cell: ({ row }: { row: any }) => new Date(row.getValue("createdAt")).toLocaleDateString('vi-VN'),
+      cell: (info) =>
+        new Date(info.getValue() as string).toLocaleDateString("vi-VN"),
     },
     {
       id: "actions",
       header: "Hành động",
-      cell: ({ row }: { row: any }) => (
+      cell: ({ row }) => (
         <DonationRequestActions
           donationRequest={row.original}
           onOpenDialog={(memberId, memberName) => {
-            setIsDialogOpen(true)
-            setSelectedMember({ id: memberId, name: memberName })
+            setIsDialogOpen(true);
+            setSelectedMember({ id: memberId, name: memberName });
           }}
         />
       ),
     },
-  ]
+  ];
 
-  const { data, isLoading, error } = useGetDonationRequests(
-    id || "",
-    undefined,
-    Number(pagination.pageSize),
-    Number(pagination.pageIndex) + 1
-  )
+  const { data, isLoading, error } = useGetDonationRequests({
+    campaignId: id,
+    page: pagination.pageIndex + 1,
+    limit: pagination.pageSize,
+  });
 
-  const filteredData = data?.data.data.filter(donationRequest =>
-    donationRequest.currentStatus === "completed"
-  ) || [];
+  const filteredData =
+    data?.items.filter(
+      (donationRequest) => donationRequest.currentStatus === "completed"
+    ) || [];
 
   const table = useReactTable({
     data: filteredData,
@@ -185,21 +175,23 @@ export default function StaffDonationResultList({ }: { donationResultId: string 
     getSortedRowModel: getSortedRowModel(),
     getRowId: (row) => row.id,
     manualPagination: true,
-    pageCount: data?.data?.meta.totalPages,
-  })
+    pageCount: Math.ceil((data?.total || 0) / pagination.pageSize),
+  });
 
   if (isLoading) {
-    return <div>Đang tải...</div>
+    return <div>Đang tải...</div>;
   }
 
   if (error) {
-    return <div>Lỗi: {error.message}</div>
+    return <div>Lỗi: {error.message}</div>;
   }
 
   return (
     <div className="w-full p-4">
       <div className="flex justify-between items-center mb-4">
-        <h1 className="text-2xl font-bold">Xem yêu cầu hiến máu để cập nhật kết quả</h1>
+        <h1 className="text-2xl font-bold">
+          Xem yêu cầu hiến máu để cập nhật kết quả
+        </h1>
       </div>
       <div className="rounded-md border">
         <Table>
@@ -210,7 +202,10 @@ export default function StaffDonationResultList({ }: { donationResultId: string 
                   <TableHead key={header.id}>
                     {header.isPlaceholder
                       ? null
-                      : flexRender(header.column.columnDef.header, header.getContext())}
+                      : flexRender(
+                        header.column.columnDef.header,
+                        header.getContext()
+                      )}
                   </TableHead>
                 ))}
               </TableRow>
@@ -222,14 +217,20 @@ export default function StaffDonationResultList({ }: { donationResultId: string 
                 <TableRow key={row.id}>
                   {row.getVisibleCells().map((cell) => (
                     <TableCell key={cell.id}>
-                      {flexRender(cell.column.columnDef.cell, cell.getContext())}
+                      {flexRender(
+                        cell.column.columnDef.cell,
+                        cell.getContext()
+                      )}
                     </TableCell>
                   ))}
                 </TableRow>
               ))
             ) : (
               <TableRow>
-                <TableCell colSpan={columns.length} className="h-24 text-center">
+                <TableCell
+                  colSpan={columns.length}
+                  className="h-24 text-center"
+                >
                   Không tìm thấy yêu cầu hiến máu nào.
                 </TableCell>
               </TableRow>
@@ -239,7 +240,7 @@ export default function StaffDonationResultList({ }: { donationResultId: string 
       </div>
       <div className="flex items-center justify-end space-x-2 py-4">
         <div className="flex-1 text-sm text-muted-foreground">
-          Trang {table.getState().pagination.pageIndex + 1} /{' '}
+          Trang {table.getState().pagination.pageIndex + 1} /{" "}
           {table.getPageCount()}
         </div>
         <div className="space-x-2">
@@ -288,5 +289,5 @@ export default function StaffDonationResultList({ }: { donationResultId: string 
         }}
       />
     </div>
-  )
+  );
 }

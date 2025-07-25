@@ -79,10 +79,42 @@ export const useGetDonationResultById = (id: string) => {
 		queryKey: ["donationResult", id],
 		queryFn: async () => {
 			const { data }: { data: ApiResponse<DonationResult> } = await api.get(
-				`/donations/results/${id}`
+				`/donations/requests/${id}/result`
 			);
 			return data.data;
 		},
 		enabled: !!id,
 	});
+};
+
+// New Mutation to Update Donation Request Result
+export const useUpdateDonationRequestResult = () => {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async ({
+      id,
+      resultData,
+    }: {
+      id: string;
+      resultData: {
+        volumeMl: number;
+        bloodGroup: string;
+        bloodRh: string;
+        notes?: string;
+        rejectReason?: string;
+        status: "completed" | "rejected";
+      };
+    }) => {
+      const { data }: { data: ApiResponse<DonationRequest> } = await api.patch(
+        `/donations/requests/${id}/result`,
+        resultData
+      );
+      return data.data;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["donationRequests"] });
+      queryClient.invalidateQueries({ queryKey: ["donationRequest"] });
+    },
+  });
 };

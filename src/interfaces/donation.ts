@@ -94,6 +94,7 @@ export interface DonationResult {
 	template: DonationResultTemplate;
 	resultDate: string;
 	notes?: string;
+	volumeMl?: number; // Thêm thuộc tính volumeMl
 	processedBy: {
 		id: string;
 		firstName: string;
