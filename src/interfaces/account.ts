@@ -6,6 +6,11 @@ export enum AccountRole {
 	User = "user",
 }
 
+export enum AccountUserRole {
+	User = "user",
+	Hospital = "hospital",
+}
+
 export enum StaffRole {
 	Staff = "staff",
 	Doctor = "doctor",
@@ -17,6 +22,16 @@ export interface Account {
 	updatedAt: string;
 	email: string;
 	role: AccountRole;
+}
+
+export interface Staff {
+	id: string;
+	createdAt: string;
+	updatedAt: string;
+	account: string;
+	firstName: string;
+	lastName: string;
+	role: string;
 }
 
 export interface GetAdminProfileResponse {

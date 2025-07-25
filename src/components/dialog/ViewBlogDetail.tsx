@@ -75,7 +75,7 @@ export function ViewBlogDetail({ open, onOpenChange, blogId }: ViewBlogDetailPro
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-[600px]">
+      <DialogContent className="sm:max-w-[600px] max-h-[80vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle>Blog Details</DialogTitle>
         </DialogHeader>
@@ -87,22 +87,31 @@ export function ViewBlogDetail({ open, onOpenChange, blogId }: ViewBlogDetailPro
             </div>
             <div>
               <label className="text-sm font-medium">Content</label>
-              <p className="text-sm text-gray-900" dangerouslySetInnerHTML={{ __html: blog.content }} />
+              <p
+                className="text-sm text-gray-900"
+                dangerouslySetInnerHTML={{ __html: blog.content }}
+              />
             </div>
             <div>
               <label className="text-sm font-medium">Status</label>
               <p className="text-sm text-gray-900">
                 <Badge className={getStatusColor(blog.status)}>
-                  {blog.status === "draft" ? "Nháp" :
-                   blog.status === "published" ? "Đã xuất bản" :
-                   blog.status === "archived" ? "Lưu trữ" : blog.status}
+                  {blog.status === "draft"
+                    ? "Nháp"
+                    : blog.status === "published"
+                      ? "Đã xuất bản"
+                      : blog.status === "archived"
+                        ? "Lưu trữ"
+                        : blog.status}
                 </Badge>
               </p>
             </div>
             <div>
               <label className="text-sm font-medium">Published At</label>
               <p className="text-sm text-gray-900">
-                {blog.publishedAt ? new Date(blog.publishedAt).toLocaleDateString() : "N/A"}
+                {blog.publishedAt
+                  ? new Date(blog.publishedAt).toLocaleDateString()
+                  : "N/A"}
               </p>
             </div>
           </div>
@@ -115,10 +124,17 @@ export function ViewBlogDetail({ open, onOpenChange, blogId }: ViewBlogDetailPro
               <label className="text-sm font-medium">Image URL</label>
               <p className="text-sm text-gray-900">
                 {blog.imageUrl ? (
-                  <a href={blog.imageUrl} target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:underline">
+                  <a
+                    href={blog.imageUrl}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="text-blue-600 hover:underline"
+                  >
                     View Image
                   </a>
-                ) : "N/A"}
+                ) : (
+                  "N/A"
+                )}
               </p>
             </div>
             <div>
@@ -134,4 +150,5 @@ export function ViewBlogDetail({ open, onOpenChange, blogId }: ViewBlogDetailPro
       </DialogContent>
     </Dialog>
   )
+
 }

@@ -23,13 +23,18 @@ export const getBloodUnits = async (params: GetAllBloodUnitsParams): Promise<Blo
 	return response.data;
 };
 
-export const useGetBloodUnits = (params: GetAllBloodUnitsParams) => {
+export const useGetBloodUnits = (
+	params: GetAllBloodUnitsParams,
+	options?: { enabled?: boolean }
+) => {
 	return useQuery({
 		queryKey: ["bloodUnits", params],
 		queryFn: () => getBloodUnits(params),
+		enabled: options?.enabled !== false,
 	});
 };
 
+// Rest of the file remains unchanged...
 export const getBloodUnitById = async (id: string): Promise<ApiResponse<BloodUnit>> => {
 	const response = await api.get<ApiResponse<BloodUnit>>(`/inventory/blood-units/${id}`);
 	return response.data;

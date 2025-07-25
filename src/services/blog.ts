@@ -47,29 +47,41 @@ interface BlogGetAllResponse {
 }
 
 // Fetch all blogs
-export const getBlogs = async (
-	page: number = 1,
-	limit: number = 10,
-	status?: string,
-	search?: string,
-	tags?: string[]
-): Promise<BlogGetAllResponse> => {
+export const getBlogs = async ({
+	page = 1,
+	limit = 10,
+	status,
+	search,
+	tags,
+}: {
+	page?: number;
+	limit?: number;
+	status?: string;
+	search?: string;
+	tags?: string[];
+}): Promise<BlogGetAllResponse> => {
 	const response = await api.get<BlogGetAllResponse>("/blog", {
 		params: { page, limit, status, search, tags },
 	});
 	return response.data;
 };
 
-export const useGetBlogs = (
-	page: number = 1,
-	limit: number = 10,
-	status?: string,
-	search?: string,
-	tags?: string[]
-) => {
+export const useGetBlogs = ({
+	page = 1,
+	limit = 10,
+	status,
+	search,
+	tags,
+}: {
+	page?: number;
+	limit?: number;
+	status?: string;
+	search?: string;
+	tags?: string[];
+}) => {
 	return useQuery({
 		queryKey: ["blogs", page, limit, status, search, tags],
-		queryFn: () => getBlogs(page, limit, status, search, tags),
+		queryFn: () => getBlogs({ page, limit, status, search, tags }),
 	});
 };
 

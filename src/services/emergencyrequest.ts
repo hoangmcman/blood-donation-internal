@@ -1,131 +1,19 @@
 import { ApiResponse } from "@/interfaces/base";
+import {
+	ApproveEmergencyRequestPayload,
+	EmergencyRequestByIdResponse,
+	EmergencyRequestLog,
+	EmergencyRequestLogByIdResponse,
+	EmergencyRequestLogResponse,
+	EmergencyRequestResponse,
+	GetAllEmergencyRequestsParams,
+	ProvideContactsBody,
+	RejectAllEmergencyRequestsPayload,
+	RejectEmergencyRequestPayload,
+} from "@/interfaces/emergency-request";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 
 import api from "../config/api";
-
-// EmergencyRequest Interfaces
-export interface BloodType {
-	group: string;
-	rh: string;
-}
-
-export interface EmergencyRequest {
-	id: string;
-	createdAt: string;
-	updatedAt: string;
-	requestedBy: {
-		id: string;
-		createdAt: string;
-		updatedAt: string;
-		email: string;
-		role: string;
-	};
-	bloodUnit: string | null;
-	usedVolume: number;
-	requiredVolume: number;
-	bloodType: BloodType;
-	bloodTypeComponent: string;
-	status: string;
-	description: string;
-	rejectionReason: string | null;
-	startDate: string;
-	endDate: string;
-	wardCode: string;
-	districtCode: string;
-	provinceCode: string;
-	wardName: string;
-	districtName: string;
-	provinceName: string;
-	longitude: string;
-	latitude: string;
-}
-
-export interface Staff {
-	id: string;
-	createdAt: string;
-	updatedAt: string;
-	account: string;
-	firstName: string;
-	lastName: string;
-	role: string;
-}
-
-export interface Account {
-	id: string;
-	createdAt: string;
-	updatedAt: string;
-	email: string;
-	role: string;
-}
-
-export interface EmergencyRequestLog {
-	id: string;
-	createdAt: string;
-	updatedAt: string;
-	emergencyRequest: EmergencyRequest;
-	staff: Staff | null;
-	account: Account | null;
-	status: string;
-	note: string;
-	previousValue: string;
-	newValue: string;
-}
-
-export interface PaginationMeta {
-	page: number;
-	limit: number;
-	total: number;
-	totalPages: number;
-	hasNextPage: boolean;
-	hasPreviousPage: boolean;
-}
-
-export interface EmergencyRequestLogResponse {
-	success: boolean;
-	message: string;
-	data: {
-		data: EmergencyRequestLog[];
-		meta: PaginationMeta;
-	};
-}
-
-export interface EmergencyRequestLogByIdResponse {
-	success: boolean;
-	message: string;
-	data: EmergencyRequestLog;
-}
-
-export interface EmergencyRequestByIdResponse {
-	success: boolean;
-	message: string;
-	data: EmergencyRequest;
-}
-
-export interface EmergencyRequestResponse {
-	success: boolean;
-	message: string;
-	data: {
-		data: EmergencyRequest[];
-		meta: PaginationMeta;
-	};
-}
-
-// Payload Interfaces
-export interface ApproveEmergencyRequestPayload {
-	bloodUnitId: string;
-	usedVolume: string;
-}
-
-export interface RejectEmergencyRequestPayload {
-	rejectionReason: string;
-}
-
-export interface RejectAllEmergencyRequestsPayload {
-	bloodGroup?: string;
-	bloodRh?: string;
-	bloodTypeComponent?: string;
-	rejectionReason: string;
-}
 
 // EmergencyRequest CRUD Operations
 export const getEmergencyRequestLogs = async (
@@ -167,28 +55,27 @@ export const getEmergencyRequestById = async (
 	return response.data;
 };
 
-export const useGetEmergencyRequestById = (id: string) => {
+export const useGetEmergencyRequestById = (id: string, options?: { enabled?: boolean }) => {
 	return useQuery({
 		queryKey: ["emergencyRequest", id],
 		queryFn: () => getEmergencyRequestById(id),
-		enabled: !!id,
+		enabled: !!id && options?.enabled !== false,
 	});
 };
 
 export const getEmergencyRequests = async (
-	page: number = 1,
-	limit: number = 10
+	params?: GetAllEmergencyRequestsParams
 ): Promise<EmergencyRequestResponse> => {
 	const response = await api.get<EmergencyRequestResponse>("/emergency-requests", {
-		params: { page, limit },
+		params,
 	});
 	return response.data;
 };
 
-export const useGetEmergencyRequests = (page: number = 1, limit: number = 10) => {
+export const useGetEmergencyRequests = (params?: GetAllEmergencyRequestsParams) => {
 	return useQuery({
-		queryKey: ["emergencyRequests", page, limit],
-		queryFn: () => getEmergencyRequests(page, limit),
+		queryKey: ["emergencyRequests", params],
+		queryFn: () => getEmergencyRequests(params),
 	});
 };
 
@@ -254,6 +141,27 @@ export const useRejectAllEmergencyRequests = () => {
 		mutationFn: (payload: RejectAllEmergencyRequestsPayload) => rejectAllEmergencyRequests(payload),
 		onSuccess: () => {
 			queryClient.invalidateQueries({ queryKey: ["emergencyRequestLogs"] });
+		},
+	});
+};
+
+export const provideContactsForEmergencyRequest = async (id: string, body: ProvideContactsBody) => {
+	const response = await api.patch<ApiResponse<EmergencyRequestLog>>(
+		`/emergency-requests/${id}/provide-contacts`,
+		body
+	);
+	return response.data;
+};
+
+export const useProvideContactsForEmergencyRequest = () => {
+	const queryClient = useQueryClient();
+	return useMutation({
+		mutationFn: (variables: { id: string; body: ProvideContactsBody }) =>
+			provideContactsForEmergencyRequest(variables.id, variables.body),
+		onSuccess: (_, variables) => {
+			queryClient.invalidateQueries({ queryKey: ["emergencyRequestLogs"] });
+			queryClient.invalidateQueries({ queryKey: ["emergencyRequestLog", variables.id] });
+			queryClient.invalidateQueries({ queryKey: ["emergencyRequests"] });
 		},
 	});
 };

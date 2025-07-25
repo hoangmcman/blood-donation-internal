@@ -1,16 +1,16 @@
-"use client"
+"use client";
 
 import React from "react";
-import { useForm } from "react-hook-form"
-import { zodResolver } from "@hookform/resolvers/zod"
-import * as z from "zod"
-import { Button } from "@/components/ui/button"
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import * as z from "zod";
+import { Button } from "@/components/ui/button";
 import {
   Dialog,
   DialogContent,
   DialogHeader,
   DialogTitle,
-} from "@/components/ui/dialog"
+} from "@/components/ui/dialog";
 import {
   Form,
   FormControl,
@@ -35,7 +35,7 @@ const formSchema = z.object({
 interface CreateBloodUnitDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  memberId: string;
+  memberId: string; // thực ra đây là donationRequestId
   memberName: string;
 }
 
@@ -71,7 +71,7 @@ export default function CreateBloodUnitDialog({ open, onOpenChange, memberId }: 
   const onSubmit = (values: z.infer<typeof formSchema>) => {
     mutate(
       {
-        memberId,
+        memberId: donationRequest!.donor!.id,
         bloodGroup: values.bloodGroup,
         bloodRh: values.bloodRh,
         bloodVolume: values.bloodVolume,
@@ -84,7 +84,8 @@ export default function CreateBloodUnitDialog({ open, onOpenChange, memberId }: 
           onOpenChange(false);
           form.reset();
         },
-        onError: () => {
+        onError: (err: any) => {
+          console.error(err);
           toast.error("Tạo đơn vị máu thất bại");
         },
       }
@@ -121,7 +122,7 @@ export default function CreateBloodUnitDialog({ open, onOpenChange, memberId }: 
                     <input
                       {...field}
                       className="w-full p-2 border rounded"
-                      disabled={true}
+                      disabled
                     />
                   </FormControl>
                   <FormMessage />
@@ -138,7 +139,7 @@ export default function CreateBloodUnitDialog({ open, onOpenChange, memberId }: 
                     <input
                       {...field}
                       className="w-full p-2 border rounded"
-                      disabled={true}
+                      disabled
                     />
                   </FormControl>
                   <FormMessage />
@@ -196,7 +197,9 @@ export default function CreateBloodUnitDialog({ open, onOpenChange, memberId }: 
                 </FormItem>
               )}
             />
-            <Button type="submit" disabled={isLoading}>Tạo đơn vị máu</Button>
+            <Button type="submit" disabled={isLoading}>
+              Tạo đơn vị máu
+            </Button>
           </form>
         </Form>
       </DialogContent>

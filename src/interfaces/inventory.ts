@@ -2,9 +2,11 @@ import { BloodComponentType, BloodGroup, BloodType } from "./blood";
 import { PaginationMeta } from "./pagination";
 
 export interface InventoryMember {
-  firstName: string;
-  lastName: string;
-  bloodType: BloodType | null;
+	id: string;
+	firstName: string;
+	lastName: string;
+	bloodType: BloodType | null;
+	phone: string;
 }
 
 export interface BloodUnit {
