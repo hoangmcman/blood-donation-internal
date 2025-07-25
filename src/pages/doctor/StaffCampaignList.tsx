@@ -49,22 +49,10 @@ import {
 } from "@tanstack/react-table";
 
 import { ViewCampaignDetail } from "../../components/dialog/ViewCampaignDetail";
+import { Campaign } from "../../interfaces/campaign";
 import { useGetCampaigns } from "../../services/campaign";
 
-interface Campaign {
-	id: string;
-	name: string;
-	description?: string;
-	startDate: string;
-	endDate?: string;
-	status: string;
-	banner: string;
-	location: string;
-	limitDonation: number;
-	bloodCollectionDate: Date;
-}
-
-const columns: ColumnDef<Campaign>[] = [
+const columns: ColumnDef<Campaign, any>[] = [
 	{
 		accessorKey: "name",
 		header: "Tên chiến dịch",
@@ -178,7 +166,7 @@ function CampaignActions({ campaign }: CampaignActionsProps) {
 						<Eye className="h-4 w-4" />
 						Xem chi tiết chiến dịch
 					</DropdownMenuItem>
-					{now > new Date(campaign.bloodCollectionDate) && (
+					{campaign.bloodCollectionDate && now > new Date(campaign.bloodCollectionDate) && (
 						<DropdownMenuItem
 							onClick={() => navigate(`/staff/campaign/${campaign.id}/donation-requests`)}
 						>
