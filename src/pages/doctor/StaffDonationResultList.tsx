@@ -39,7 +39,7 @@ import {
 import {
   useGetDonationRequests,
 } from "../../services/campaign"
-import CreateBloodUnitDialog from "../../components/dialog/CreateBloodUnitDialog"
+import UpdateDonationResultDialog from "../../components/dialog/UpdateDonationResultDialog"
 
 interface DonationRequest {
   id: string
@@ -278,11 +278,14 @@ export default function StaffDonationResultList({ }: { donationResultId: string 
         </div>
       </div>
       <Toaster />
-      <CreateBloodUnitDialog
+      <UpdateDonationResultDialog
         open={isDialogOpen}
         onOpenChange={setIsDialogOpen}
-        memberId={selectedMember.id} // thực ra là donationRequestId
+        memberId={selectedMember.id}
         memberName={selectedMember.name}
+        onSubmitResult={(id, resultData) => {
+          console.log("📌 Gửi API cập nhật kết quả: ", id, resultData);
+        }}
       />
     </div>
   )

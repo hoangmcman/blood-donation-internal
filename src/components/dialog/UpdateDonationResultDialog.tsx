@@ -1,221 +1,212 @@
 "use client";
 
-import * as React from "react";
+import { useEffect } from "react";
+import { useForm } from "react-hook-form";
+import * as z from "zod";
+import { zodResolver } from "@hookform/resolvers/zod";
 import { toast } from "sonner";
 
-import { Badge } from "@/components/ui/badge";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import {
-	Dialog,
-	DialogContent,
-	DialogFooter,
-	DialogHeader,
-	DialogTitle,
-} from "@/components/ui/dialog";
+  Form,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormControl,
+  FormMessage,
+} from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
+import { Select, SelectTrigger, SelectContent, SelectItem, SelectValue } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
-import { Item, UpdateDonationResultPayload } from "@/interfaces/donation";
-import { useUpdateDonationResult } from "@/services/donations";
 
-import { useGetDonationResultTemplateById } from "../../services/donationresulttemplates";
+// ✅ Tạo schema validate
+const formSchema = z.object({
+  volumeMl: z.coerce.number().min(50, "Thể tích phải ít nhất 50ml"),
+  bloodGroup: z.string().min(1, "Chọn nhóm máu"),
+  bloodRh: z.string().min(1, "Chọn Rh"),
+  notes: z.string().optional(),
+  rejectReason: z.string().optional(),
+  status: z.enum(["completed", "rejected"]),
+});
+
+type FormValues = z.infer<typeof formSchema>;
 
 interface UpdateDonationResultDialogProps {
-	open: boolean;
-	onOpenChange: (open: boolean) => void;
-	templateId: string;
-	donationResultId: string;
+  open: boolean;
+  onOpenChange: (open: boolean) => void;
+  memberId: string; // donationRequestId
+  memberName: string;
+  onSubmitResult?: (id: string, data: FormValues) => void;
 }
 
 export default function UpdateDonationResultDialog({
-	open,
-	onOpenChange,
-	templateId,
-	donationResultId,
+  open,
+  onOpenChange,
+  memberId,
+  memberName,
+  onSubmitResult,
 }: UpdateDonationResultDialogProps) {
-	const { data, isLoading, error } = useGetDonationResultTemplateById(templateId);
-	const updateDonationResult = useUpdateDonationResult();
-	const [formData, setFormData] = React.useState<UpdateDonationResultPayload>({
-		templateId,
-		bloodTestResults: {},
-		resultDate: new Date().toISOString().split("T")[0],
-		notes: "",
-	});
+  const form = useForm<FormValues>({
+    resolver: zodResolver(formSchema),
+    defaultValues: {
+      volumeMl: 0,
+      bloodGroup: "",
+      bloodRh: "",
+      notes: "",
+      rejectReason: "",
+      status: "completed",
+    },
+  });
 
-	React.useEffect(() => {
-		if (data?.data) {
-			const initialBloodTestResults = data.data.items.reduce(
-				(acc, item) => ({
-					...acc,
-					[item.id]: item.defaultValue || "",
-				}),
-				{} as { [key: string]: string }
-			);
-			setFormData((prev) => ({
-				...prev,
-				bloodTestResults: initialBloodTestResults,
-			}));
-		}
-	}, [data]);
+  useEffect(() => {
+    if (!open) form.reset();
+  }, [open, form]);
 
-	const handleInputChange = (itemId: string, value: string) => {
-		setFormData((prev) => ({
-			...prev,
-			bloodTestResults: {
-				...prev.bloodTestResults,
-				[itemId]: value,
-			},
-		}));
-	};
+  const handleSubmit = (values: FormValues) => {
+    console.log("✅ Dữ liệu cập nhật kết quả:", values);
 
-	const handleNotesChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
-		setFormData((prev) => ({
-			...prev,
-			notes: e.target.value,
-		}));
-	};
+    // Gọi API cập nhật
+    onSubmitResult?.(memberId, values);
 
-	const handleSubmit = async () => {
-		try {
-			await updateDonationResult.mutateAsync({
-				id: donationResultId,
-				updateData: formData,
-			});
-			toast.success("Cập nhật kết quả hiến máu thành công");
-			onOpenChange(false);
-		} catch (error) {
-			toast.error("Lỗi khi cập nhật kết quả hiến máu");
-		}
-	};
+    toast.success("Cập nhật kết quả hiến máu thành công!");
+    onOpenChange(false);
+  };
 
-	if (isLoading) {
-		return (
-			<Dialog open={open} onOpenChange={onOpenChange}>
-				<DialogContent className="sm:max-w-[800px]">
-					<DialogHeader>
-						<DialogTitle>Cập nhật Kết quả Hiến máu</DialogTitle>
-					</DialogHeader>
-					<div>Đang tải...</div>
-				</DialogContent>
-			</Dialog>
-		);
-	}
+  return (
+    <Dialog open={open} onOpenChange={onOpenChange}>
+      <DialogContent className="sm:max-w-[425px]">
+        <DialogHeader>
+          <DialogTitle>
+            Cập nhật kết quả hiến máu cho: <b>{memberName}</b>
+          </DialogTitle>
+        </DialogHeader>
+        <Form {...form}>
+          <form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-4">
+            <FormField
+              control={form.control}
+              name="volumeMl"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Thể tích máu (ml)</FormLabel>
+                  <FormControl>
+                    <Input type="number" {...field} />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
 
-	if (error || !data?.success || !data?.data) {
-		return (
-			<Dialog open={open} onOpenChange={onOpenChange}>
-				<DialogContent className="sm:max-w-[800px]">
-					<DialogHeader>
-						<DialogTitle>Cập nhật Kết quả Hiến máu</DialogTitle>
-					</DialogHeader>
-					<div>Lỗi: {error?.message || "Không thể tải chi tiết mẫu"}</div>
-				</DialogContent>
-			</Dialog>
-		);
-	}
+            <FormField
+              control={form.control}
+              name="bloodGroup"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Nhóm máu</FormLabel>
+                  <Select onValueChange={field.onChange} value={field.value}>
+                    <FormControl>
+                      <SelectTrigger>
+                        <SelectValue placeholder="Chọn nhóm máu" />
+                      </SelectTrigger>
+                    </FormControl>
+                    <SelectContent>
+                      {["A", "B", "AB", "O"].map((g) => (
+                        <SelectItem key={g} value={g}>
+                          {g}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
 
-	const template = data.data;
+            <FormField
+              control={form.control}
+              name="bloodRh"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Rh</FormLabel>
+                  <Select onValueChange={field.onChange} value={field.value}>
+                    <FormControl>
+                      <SelectTrigger>
+                        <SelectValue placeholder="Chọn Rh" />
+                      </SelectTrigger>
+                    </FormControl>
+                    <SelectContent>
+                      <SelectItem value="+">+</SelectItem>
+                      <SelectItem value="-">-</SelectItem>
+                    </SelectContent>
+                  </Select>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
 
-	return (
-		<Dialog open={open} onOpenChange={onOpenChange}>
-			<DialogContent className="sm:max-w-[800px] max-h-[90vh] overflow-y-auto">
-				<DialogHeader>
-					<DialogTitle>Cập nhật Kết quả Hiến máu</DialogTitle>
-				</DialogHeader>
-				<div className="grid gap-4">
-					<div className="space-y-4">
-						<div className="grid grid-cols-2 gap-4">
-							<div>
-								<Label className="text-sm font-medium">Tên mẫu</Label>
-								<p className="text-sm text-gray-900">{template.name}</p>
-							</div>
-							<div>
-								<Label className="text-sm font-medium">Mô tả</Label>
-								<p className="text-sm text-gray-900">{template.description}</p>
-							</div>
-							<div>
-								<Label className="text-sm font-medium">Trạng thái</Label>
-								<p className="text-sm text-gray-900">
-									<Badge
-										className={
-											template.active ? "bg-green-100 text-green-700" : "bg-red-100 text-red-700"
-										}
-									>
-										{template.active ? "Hoạt động" : "Không hoạt động"}
-									</Badge>
-								</p>
-							</div>
-							<div>
-								<Label className="text-sm font-medium">Số mục</Label>
-								<p className="text-sm text-gray-900">{template.items.length}</p>
-							</div>
-						</div>
-					</div>
-					<div className="space-y-4">
-						<h3 className="text-lg font-medium">Kết quả xét nghiệm máu</h3>
-						{template.items.map((item: Item) => (
-							<div key={item.id} className="space-y-2">
-								<Label>
-									{item.label} {item.isRequired && <span className="text-red-500">*</span>}
-								</Label>
-								{item.type === "select" && item.options ? (
-									<select
-										className="w-full rounded-md border p-2"
-										value={formData.bloodTestResults[item.id] || ""}
-										onChange={(e) => handleInputChange(item.id, e.target.value)}
-										required={item.isRequired}
-									>
-										<option value="">Chọn một tùy chọn</option>
-										{item.options.map((option) => (
-											<option key={option.id} value={option.label}>
-												{option.label}
-											</option>
-										))}
-									</select>
-								) : (
-									<Input
-										type={item.type === "number" ? "number" : "text"}
-										placeholder={item.placeholder}
-										value={formData.bloodTestResults[item.id] || ""}
-										onChange={(e) => handleInputChange(item.id, e.target.value)}
-										required={item.isRequired}
-										min={item.minValue}
-										max={item.maxValue}
-										minLength={item.minLength}
-										maxLength={item.maxLength}
-										pattern={item.pattern}
-									/>
-								)}
-								<p className="text-sm text-gray-500">{item.description}</p>
-							</div>
-						))}
-					</div>
-					<div className="space-y-2">
-						<Label>Ngày kết quả</Label>
-						<Input
-							type="date"
-							value={formData.resultDate}
-							onChange={(e) => setFormData((prev) => ({ ...prev, resultDate: e.target.value }))}
-						/>
-					</div>
-					<div className="space-y-2">
-						<Label>Ghi chú</Label>
-						<Textarea
-							value={formData.notes || ""}
-							onChange={handleNotesChange}
-							placeholder="Nhập ghi chú nếu có"
-						/>
-					</div>
-				</div>
-				<DialogFooter>
-					<Button variant="outline" onClick={() => onOpenChange(false)}>
-						Hủy
-					</Button>
-					<Button onClick={handleSubmit} disabled={updateDonationResult.isPending}>
-						{updateDonationResult.isPending ? "Đang cập nhật..." : "Cập nhật"}
-					</Button>
-				</DialogFooter>
-			</DialogContent>
-		</Dialog>
-	);
+            <FormField
+              control={form.control}
+              name="status"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Trạng thái kết quả</FormLabel>
+                  <Select onValueChange={field.onChange} value={field.value}>
+                    <FormControl>
+                      <SelectTrigger>
+                        <SelectValue placeholder="Chọn trạng thái" />
+                      </SelectTrigger>
+                    </FormControl>
+                    <SelectContent>
+                      <SelectItem value="completed">Hoàn thành</SelectItem>
+                      <SelectItem value="rejected">Từ chối</SelectItem>
+                    </SelectContent>
+                  </Select>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
+            {form.watch("status") === "rejected" && (
+              <FormField
+                control={form.control}
+                name="rejectReason"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Lý do từ chối</FormLabel>
+                    <FormControl>
+                      <Textarea {...field} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+            )}
+
+            <FormField
+              control={form.control}
+              name="notes"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Ghi chú</FormLabel>
+                  <FormControl>
+                    <Textarea {...field} />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
+            <Button type="submit" className="w-full">
+              Cập nhật kết quả
+            </Button>
+          </form>
+        </Form>
+      </DialogContent>
+    </Dialog>
+  );
 }

@@ -20,7 +20,6 @@ import BloodUnitHistory from "./pages/doctor/BloodUnitHistory";
 import DonationRequestList from "./pages/doctor/DonationRequestList";
 import StaffDonationResultList from "./pages/doctor/StaffDonationResultList";
 import StaffProfile from "./pages/doctor/StaffProfile";
-import DonationResultTemplateList from "./pages/staff/DonationResultTemplateList";
 
 export const router = createBrowserRouter([
 	{
@@ -92,10 +91,6 @@ export const router = createBrowserRouter([
 			{
 				path: "bloodunitmanagement",
 				element: <BloodUnitManagement />,
-			},
-			{
-				path: "donationresulttemplate",
-				element: <DonationResultTemplateList />,
 			},
 			{
 				path: "donationresultlist",
