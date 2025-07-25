@@ -5,13 +5,11 @@ import {
 	GetAllDonationRequestsParams,
 	PaginatedDonationResponse,
 	PaginatedDonationResultResponse,
-	UpdateDonationResultPayload,
 	UpdateStatusRequest,
 } from "@/interfaces/donation";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 
 import api from "../config/api";
-import { DonationResultTemplate } from "./donationresulttemplates";
 
 const getDonationRequests = async (
 	params?: GetAllDonationRequestsParams
@@ -81,7 +79,7 @@ export const useGetDonationResultById = (id: string) => {
 		queryKey: ["donationResult", id],
 		queryFn: async () => {
 			const { data }: { data: ApiResponse<DonationResult> } = await api.get(
-				`/donations/results/${id}`
+				`/donations/requests/${id}/result`
 			);
 			return data.data;
 		},
@@ -89,39 +87,34 @@ export const useGetDonationResultById = (id: string) => {
 	});
 };
 
-export const useUpdateDonationResult = () => {
-	const queryClient = useQueryClient();
+// New Mutation to Update Donation Request Result
+export const useUpdateDonationRequestResult = () => {
+  const queryClient = useQueryClient();
 
-	return useMutation({
-		mutationFn: async ({
-			id,
-			updateData,
-		}: {
-			id: string;
-			updateData: UpdateDonationResultPayload;
-		}) => {
-			// Fetch the template snapshot based on templateId
-			const { data: templateResponse }: { data: ApiResponse<DonationResultTemplate> } =
-				await api.get(`/donation-result-templates/${updateData.templateId}`);
-			const templateSnapshot = templateResponse.data;
-
-			// Prepare payload with template snapshot and update blood test results
-			const payload = {
-				...updateData,
-				template: templateSnapshot,
-				currentStatus: "RESULT_RETURNED", // Automatically set status
-			};
-
-			const { data }: { data: ApiResponse<DonationResult> } = await api.patch(
-				`/donations/results/${id}`,
-				payload
-			);
-			return data.data;
-		},
-		onSuccess: (data) => {
-			queryClient.invalidateQueries({ queryKey: ["donationResults"] });
-			queryClient.invalidateQueries({ queryKey: ["donationResult", data.id] });
-			queryClient.invalidateQueries({ queryKey: ["donationRequests"] }); // Invalidate requests if status changes affect them
-		},
-	});
+  return useMutation({
+    mutationFn: async ({
+      id,
+      resultData,
+    }: {
+      id: string;
+      resultData: {
+        volumeMl: number;
+        bloodGroup: string;
+        bloodRh: string;
+        notes?: string;
+        rejectReason?: string;
+        status: "completed" | "rejected";
+      };
+    }) => {
+      const { data }: { data: ApiResponse<DonationRequest> } = await api.patch(
+        `/donations/requests/${id}/result`,
+        resultData
+      );
+      return data.data;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["donationRequests"] });
+      queryClient.invalidateQueries({ queryKey: ["donationRequest"] });
+    },
+  });
 };

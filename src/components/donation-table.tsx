@@ -60,119 +60,127 @@ const getColumns = (meta?: {
 	onView?: (id: string) => void;
 	onUpdate?: (id: string, date: string) => void;
 }): ColumnDef<DonationRequest>[] => [
-	{
-		accessorKey: "donor.firstName",
-		header: "Tên người hiến",
-		cell: ({ row }) => row.original.donor.firstName,
-	},
-	{
-		accessorKey: "donor.lastName",
-		header: "Họ người hiến",
-		cell: ({ row }) => row.original.donor.lastName,
-	},
-	{
-		accessorKey: "campaign.name",
-		header: "Chiến dịch",
-		cell: ({ row }) => row.original.campaign.name,
-	},
-	{
-		accessorKey: "bloodType",
-		header: "Nhóm máu",
-		cell: ({}) => "Không có", // Vì DonationRequest không có bloodType, nên hiện tạm "Không có"
-	},
-	{
-		accessorKey: "currentStatus",
-		header: "Trạng thái",
-		cell: ({ row }) => {
-			const status = row.original.currentStatus;
-			const getStatusColor = (status: string) => {
-				switch (status.toLowerCase()) {
-					case "pending":
-						return "bg-yellow-100 text-yellow-700 border-yellow-200 hover:bg-yellow-50";
-					case "completed":
-						return "bg-green-100 text-green-700 border-green-200 hover:bg-green-50";
-					case "rejected":
-						return "bg-red-100 text-red-700 border-red-200 hover:bg-red-50";
-					default:
-						return "bg-gray-100 text-gray-700 border-gray-200 hover:bg-gray-50";
-				}
-			};
-			return (
-				<Badge className={getStatusColor(status)}>
-					{status === "pending"
-						? "Request chờ duyệt"
-						: status === "completed"
-						? "Lấy máu thành công, chưa trả kết quả"
-						: status === "rejected"
-						? "Request bị từ chối"
-						: status.charAt(0).toUpperCase() + status.slice(1)}
-				</Badge>
-			);
+		{
+			accessorKey: "donor.firstName",
+			header: "Tên người hiến",
+			cell: ({ row }) => row.original.donor.firstName,
 		},
-	},
-	{
-		id: "bloodCollectionDate",
-		header: "Ngày hiến máu",
-		cell: ({ row }) =>
-			row.original.campaign.bloodCollectionDate
-				? new Date(row.original.campaign.bloodCollectionDate).toLocaleDateString("vi-VN", {
+		{
+			accessorKey: "donor.lastName",
+			header: "Họ người hiến",
+			cell: ({ row }) => row.original.donor.lastName,
+		},
+		{
+			accessorKey: "campaign.name",
+			header: "Chiến dịch",
+			cell: ({ row }) => row.original.campaign.name,
+		},
+		{
+			accessorKey: "bloodType",
+			header: "Nhóm máu",
+			cell: ({ }) => "Không có", // Vì DonationRequest không có bloodType, nên hiện tạm "Không có"
+		},
+		{
+			accessorKey: "currentStatus",
+			header: "Trạng thái",
+			cell: ({ row }) => {
+				const status = row.original.currentStatus;
+				const getStatusColor = (status: string) => {
+					switch (status.toLowerCase()) {
+						case "pending":
+							return "bg-yellow-100 text-yellow-700 border-yellow-200 hover:bg-yellow-50";
+						case "completed":
+							return "bg-green-100 text-green-700 border-green-200 hover:bg-green-50";
+						case "rejected":
+							return "bg-red-100 text-red-700 border-red-200 hover:bg-red-50";
+						default:
+							return "bg-gray-100 text-gray-700 border-gray-200 hover:bg-gray-50";
+					}
+				};
+				return (
+					<Badge className={getStatusColor(status)}>
+						{status === "pending"
+							? "Request chờ duyệt"
+							: status === "completed"
+								? "Lấy máu thành công, chưa trả kết quả"
+								: status === "rejected"
+									? "Request bị từ chối"
+									: status.charAt(0).toUpperCase() + status.slice(1)}
+					</Badge>
+				);
+			},
+		},
+		{
+			id: "bloodCollectionDate",
+			header: "Ngày hiến máu",
+			cell: ({ row }) =>
+				row.original.campaign.bloodCollectionDate
+					? new Date(row.original.campaign.bloodCollectionDate).toLocaleDateString("vi-VN", {
 						year: "numeric",
 						month: "short",
 						day: "numeric",
-				  })
-				: "Không có",
-	},
-	{
-		id: "actions",
-		header: "Hành động",
-		cell: ({ row }) => {
-			const [openView, setOpenView] = useState(false);
-			const [openUpdate, setOpenUpdate] = useState(false);
-			const donation = row.original;
-
-			return (
-				<>
-					<DropdownMenu>
-						<DropdownMenuTrigger asChild>
-							<Button variant="ghost" className="h-8 w-8 p-0">
-								<MoreVerticalIcon className="h-4 w-4" />
-								<span className="sr-only">Mở menu</span>
-							</Button>
-						</DropdownMenuTrigger>
-						<DropdownMenuContent align="end">
-							<DropdownMenuItem
-								onClick={() => {
-									setOpenView(true);
-									meta?.onView?.(donation.id);
-								}}
-							>
-								<Eye className="h-4 w-4" />
-								Xem chi tiết
-							</DropdownMenuItem>
-							<DropdownMenuItem
-								onClick={() => {
-									setOpenUpdate(true);
-									meta?.onUpdate?.(donation.id, donation.appointmentDate);
-								}}
-							>
-								<Edit className="h-4 w-4" />
-								Cập nhật trạng thái
-							</DropdownMenuItem>
-						</DropdownMenuContent>
-					</DropdownMenu>
-
-					<ViewDonationDetail open={openView} onOpenChange={setOpenView} donationId={donation.id} />
-
-					<UpdateDonationStatus
-						open={openUpdate}
-						onOpenChange={setOpenUpdate}
-						donationId={donation.id}
-					/>
-				</>
-			);
+					})
+					: "Không có",
 		},
-	},
-];
+		{
+			id: "actions",
+			header: "Hành động",
+			cell: ({ row }) => {
+				const [openView, setOpenView] = useState(false);
+				const [openUpdate, setOpenUpdate] = useState(false);
+				const donation = row.original;
+
+				return (
+					<>
+						<DropdownMenu>
+							<DropdownMenuTrigger asChild>
+								<Button variant="ghost" className="h-8 w-8 p-0">
+									<MoreVerticalIcon className="h-4 w-4" />
+									<span className="sr-only">Mở menu</span>
+								</Button>
+							</DropdownMenuTrigger>
+							<DropdownMenuContent align="end">
+								<DropdownMenuItem
+									onClick={() => {
+										setOpenView(true);
+										meta?.onView?.(donation.id);
+									}}
+								>
+									<Eye className="h-4 w-4" />
+									Xem chi tiết
+								</DropdownMenuItem>
+
+								{/* ✅ Ẩn khi đã completed */}
+								{donation.currentStatus !== "completed"&& donation.currentStatus !== "result_returned" && (
+									<DropdownMenuItem
+										onClick={() => {
+											setOpenUpdate(true);
+											meta?.onUpdate?.(donation.id, donation.appointmentDate);
+										}}
+									>
+										<Edit className="h-4 w-4" />
+										Cập nhật trạng thái
+									</DropdownMenuItem>
+								)}
+							</DropdownMenuContent>
+						</DropdownMenu>
+
+						<ViewDonationDetail
+							open={openView}
+							onOpenChange={setOpenView}
+							donationId={donation.id}
+						/>
+
+						<UpdateDonationStatus
+							open={openUpdate}
+							onOpenChange={setOpenUpdate}
+							donationId={donation.id}
+						/>
+					</>
+				);
+			},
+		},
+	];
 
 export function DonationTable({
 	onView,

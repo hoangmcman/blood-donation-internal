@@ -87,7 +87,7 @@ const columns: ColumnDef<{
             (table.getIsSomePageRowsSelected() && "indeterminate")
           }
           onCheckedChange={(value) => table.toggleAllPageRowsSelected(!!value)}
-          aria-label="Select all"
+          aria-label="Chọn tất cả"
         />
       </div>
     ),
@@ -96,7 +96,7 @@ const columns: ColumnDef<{
         <Checkbox
           checked={row.getIsSelected()}
           onCheckedChange={(value) => row.toggleSelected(!!value)}
-          aria-label="Select row"
+          aria-label="Chọn hàng"
         />
       </div>
     ),
@@ -105,28 +105,28 @@ const columns: ColumnDef<{
   },
   {
     accessorKey: "name",
-    header: "Name",
+    header: "Tên chiến dịch",
     cell: ({ row }) => <div>{row.original.name}</div>,
     enableHiding: false,
   },
   {
     accessorKey: "totalDonations",
-    header: "Total Donations",
+    header: "Tổng số lượt hiến",
     cell: ({ row }) => <div>{row.original.totalDonations}</div>,
   },
   {
     accessorKey: "completedDonations",
-    header: "Completed Donations",
+    header: "Lượt hiến hoàn thành",
     cell: ({ row }) => <div>{row.original.completedDonations}</div>,
   },
   {
     accessorKey: "totalVolumeMl",
-    header: "Total Volume (ml)",
+    header: "Tổng khối lượng (ml)",
     cell: ({ row }) => <div>{row.original.totalVolumeMl}</div>,
   },
   {
     accessorKey: "completionRate",
-    header: "Completion Rate (%)",
+    header: "Tỷ lệ hoàn thành (%)",
     cell: ({ row }) => <div>{row.original.completionRate}</div>,
   },
 ]
@@ -145,7 +145,7 @@ function DragHandle({ id }: { id: string }) {
       className="text-muted-foreground size-7 hover:bg-transparent"
     >
       <IconGripVertical className="text-muted-foreground size-3" />
-      <span className="sr-only">Drag to reorder</span>
+      <span className="sr-only">Kéo để sắp xếp lại</span>
     </Button>
   )
 }
@@ -285,23 +285,23 @@ export function CampaignTable() {
   }
 
   if (isLoading) {
-    return <div>Loading...</div>
+    return <div>Đang tải...</div>
   }
 
   return (
     <Tabs defaultValue="outline" className="w-full flex-col justify-start gap-6">
       <div className="flex items-center justify-between px-4 lg:px-6">
         <Label htmlFor="view-selector" className="sr-only">
-          View
+          Xem
         </Label>
         <Select value={timeRange} onValueChange={setTimeRange}>
           <SelectTrigger className="flex w-fit @4xl/main:hidden" id="view-selector">
-            <SelectValue placeholder="Select time range" />
+            <SelectValue placeholder="Chọn khoảng thời gian" />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="week">This Week</SelectItem>
-            <SelectItem value="month">This Month</SelectItem>
-            <SelectItem value="year">This Year</SelectItem>
+            <SelectItem value="week">Tuần này</SelectItem>
+            <SelectItem value="month">Tháng này</SelectItem>
+            <SelectItem value="year">Năm nay</SelectItem>
           </SelectContent>
         </Select>
       </div>
@@ -352,7 +352,7 @@ export function CampaignTable() {
                       colSpan={columns.length}
                       className="h-24 text-center"
                     >
-                      No results.
+                      Không có kết quả.
                     </TableCell>
                   </TableRow>
                 )}
@@ -362,13 +362,13 @@ export function CampaignTable() {
         </div>
         <div className="flex items-center justify-between px-4">
           <div className="text-muted-foreground hidden flex-1 text-sm lg:flex">
-            {table.getFilteredSelectedRowModel().rows.length} of{" "}
-            {table.getFilteredRowModel().rows.length} row(s) selected.
+            {table.getFilteredSelectedRowModel().rows.length} /{" "}
+            {table.getFilteredRowModel().rows.length} hàng được chọn.
           </div>
           <div className="flex w-full items-center gap-8 lg:w-fit">
             <div className="hidden items-center gap-2 lg:flex">
               <Label htmlFor="rows-per-page" className="text-sm font-medium">
-                Rows per page
+                Số hàng mỗi trang
               </Label>
               <Select
                 value={`${table.getState().pagination.pageSize}`}
@@ -391,7 +391,7 @@ export function CampaignTable() {
               </Select>
             </div>
             <div className="flex w-fit items-center justify-center text-sm font-medium">
-              Page {table.getState().pagination.pageIndex + 1} of{" "}
+              Trang {table.getState().pagination.pageIndex + 1} /{" "}
               {table.getPageCount()}
             </div>
             <div className="ml-auto flex items-center gap-2 lg:ml-0">
@@ -401,7 +401,7 @@ export function CampaignTable() {
                 onClick={() => table.setPageIndex(0)}
                 disabled={!table.getCanPreviousPage()}
               >
-                <span className="sr-only">Go to first page</span>
+                <span className="sr-only">Đi đến trang đầu</span>
                 <IconChevronsLeft />
               </Button>
               <Button
@@ -411,7 +411,7 @@ export function CampaignTable() {
                 onClick={() => table.previousPage()}
                 disabled={!table.getCanPreviousPage()}
               >
-                <span className="sr-only">Go to previous page</span>
+                <span className="sr-only">Đi đến trang trước</span>
                 <IconChevronLeft />
               </Button>
               <Button
@@ -421,7 +421,7 @@ export function CampaignTable() {
                 onClick={() => table.nextPage()}
                 disabled={!table.getCanNextPage()}
               >
-                <span className="sr-only">Go to next page</span>
+                <span className="sr-only">Đi đến trang sau</span>
                 <IconChevronRight />
               </Button>
               <Button
@@ -431,7 +431,7 @@ export function CampaignTable() {
                 onClick={() => table.setPageIndex(table.getPageCount() - 1)}
                 disabled={!table.getCanNextPage()}
               >
-                <span className="sr-only">Go to last page</span>
+                <span className="sr-only">Đi đến trang cuối</span>
                 <IconChevronsRight />
               </Button>
             </div>
