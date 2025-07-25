@@ -42,6 +42,7 @@ interface UpdateDonationResultDialogProps {
   onOpenChange: (open: boolean) => void;
   memberId: string;
   memberName: string;
+  onSubmitResult?: (id: string, resultData: any) => void;
 }
 
 export default function UpdateDonationResultDialog({

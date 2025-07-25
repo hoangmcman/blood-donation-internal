@@ -94,7 +94,7 @@ export const router = createBrowserRouter([
 			},
 			{
 				path: "donationresultlist",
-				element: <StaffDonationResultList donationResultId={""} />,
+				element: <StaffDonationResultList/>,
 			},
 			{
 				path: "bloodunithistory",
