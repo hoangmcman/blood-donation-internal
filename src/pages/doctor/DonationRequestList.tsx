@@ -69,6 +69,9 @@ function DonationRequestActions({ donationRequest, onOpenDialog }: DonationReque
   const requestId = donationRequest.id; // lấy id của donation request
   const memberName = `${donationRequest.donor.firstName} ${donationRequest.donor.lastName}`;
 
+  const isBeforeAppointment =
+    new Date() < new Date(donationRequest.appointmentDate);
+
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
@@ -79,6 +82,7 @@ function DonationRequestActions({ donationRequest, onOpenDialog }: DonationReque
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end">
         <DropdownMenuItem
+          disabled={isBeforeAppointment}
           onClick={() => onOpenDialog(requestId, memberName)} // đổi sang requestId
         >
           Tạo đơn vị máu

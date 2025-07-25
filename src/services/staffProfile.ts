@@ -1,9 +1,17 @@
 import api from "@/config/api"; // axios instance đã cấu hình sẵn
 
 export interface StaffProfile {
+  id: string; // Thêm id
   firstName: string;
   lastName: string;
   role: string;
+  account: {
+    id: string; // ID của account
+    createdAt: string;
+    updatedAt: string;
+    email: string;
+    role: string;
+  };
 }
 
 interface ApiResponse<T> {

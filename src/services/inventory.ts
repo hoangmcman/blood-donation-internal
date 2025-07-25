@@ -11,6 +11,7 @@ import {
 	SeparateComponentsResponse,
 } from "@/interfaces/inventory";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { StaffProfileService } from "@/services/staffProfile";
 
 import api from "../config/api";
 
@@ -197,13 +198,20 @@ export const useDeleteBloodUnitAction = () => {
 	});
 };
 
-// New Separate Components Operation
 export const separateComponents = async (
-	payload: SeparateComponentsPayload
+	payload: Omit<SeparateComponentsPayload, 'staffId'>
 ): Promise<ApiResponse<SeparateComponentsResponse>> => {
+	const staffProfile = await StaffProfileService.getProfile();
+	const staffId = staffProfile.id; // Lấy staffId từ profile
+
+	const requestPayload = {
+		...payload,
+		staffId, // Thêm staffId vào payload
+	};
+
 	const response = await api.post<ApiResponse<SeparateComponentsResponse>>(
 		"/inventory/blood-units/separate-components",
-		payload
+		requestPayload
 	);
 	return response.data;
 };

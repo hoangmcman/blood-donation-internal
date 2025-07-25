@@ -26,9 +26,11 @@ import { StaffProfileService } from "../../services/staffProfile"
 
 const formSchema = z.object({
   redCellsVolume: z.number().min(1, "Dung tích hồng cầu phải lớn hơn 0"),
+  redCellsExpiredDate: z.string().min(1, "Ngày hết hạn hồng cầu là bắt buộc"),
   plasmaVolume: z.number().min(1, "Dung tích huyết tương phải lớn hơn 0"),
+  plasmaExpiredDate: z.string().min(1, "Ngày hết hạn huyết tương là bắt buộc"),
   plateletsVolume: z.number().min(1, "Dung tích tiểu cầu phải lớn hơn 0"),
-  expiredDate: z.string().min(1, "Ngày hết hạn là bắt buộc"),
+  plateletsExpiredDate: z.string().min(1, "Ngày hết hạn tiểu cầu là bắt buộc"),
 });
 
 interface UpdateBloodUnitDialogProps {
@@ -46,16 +48,18 @@ function useGetStaffProfile() {
 
 export default function UpdateBloodUnitDialog({ open, onOpenChange, bloodUnitId }: UpdateBloodUnitDialogProps) {
   const { data: bloodUnitData } = useGetBloodUnitById(bloodUnitId);
-  useGetStaffProfile();
+  const { data: staffProfile } = useGetStaffProfile();
   const separateMutation = useSeparateComponents();
 
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: {
       redCellsVolume: 0,
+      redCellsExpiredDate: "",
       plasmaVolume: 0,
+      plasmaExpiredDate: "",
       plateletsVolume: 0,
-      expiredDate: "",
+      plateletsExpiredDate: "",
     },
   });
 
@@ -65,12 +69,18 @@ export default function UpdateBloodUnitDialog({ open, onOpenChange, bloodUnitId 
 
   const onSubmit = async (values: z.infer<typeof formSchema>) => {
     try {
+      if (!staffProfile?.id) {
+        throw new Error("Không thể lấy thông tin nhân viên");
+      }
+
       await separateMutation.mutateAsync({
         wholeBloodUnitId: bloodUnitId,
         redCellsVolume: values.redCellsVolume,
+        redCellsExpiredDate: values.redCellsExpiredDate,
         plasmaVolume: values.plasmaVolume,
+        plasmaExpiredDate: values.plasmaExpiredDate,
         plateletsVolume: values.plateletsVolume,
-        expiredDate: values.expiredDate,
+        plateletsExpiredDate: values.plateletsExpiredDate,
       });
       toast.success("Tách máu thành công");
       onOpenChange(false);
@@ -100,7 +110,7 @@ export default function UpdateBloodUnitDialog({ open, onOpenChange, bloodUnitId 
               control={form.control}
               name="redCellsVolume"
               render={({ field }) => (
-                <FormItem className="col-span-2">
+                <FormItem className="col-span-1">
                   <FormLabel>Dung tích hồng cầu (ml)</FormLabel>
                   <FormControl>
                     <Input type="number" {...field} onChange={e => field.onChange(parseInt(e.target.value) || 0)} />
@@ -111,9 +121,22 @@ export default function UpdateBloodUnitDialog({ open, onOpenChange, bloodUnitId 
             />
             <FormField
               control={form.control}
+              name="redCellsExpiredDate"
+              render={({ field }) => (
+                <FormItem className="col-span-1">
+                  <FormLabel>Ngày hết hạn hồng cầu</FormLabel>
+                  <FormControl>
+                    <Input type="date" {...field} />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+            <FormField
+              control={form.control}
               name="plasmaVolume"
               render={({ field }) => (
-                <FormItem className="col-span-2">
+                <FormItem className="col-span-1">
                   <FormLabel>Dung tích huyết tương (ml)</FormLabel>
                   <FormControl>
                     <Input type="number" {...field} onChange={e => field.onChange(parseInt(e.target.value) || 0)} />
@@ -124,9 +147,22 @@ export default function UpdateBloodUnitDialog({ open, onOpenChange, bloodUnitId 
             />
             <FormField
               control={form.control}
+              name="plasmaExpiredDate"
+              render={({ field }) => (
+                <FormItem className="col-span-1">
+                  <FormLabel>Ngày hết hạn huyết tương</FormLabel>
+                  <FormControl>
+                    <Input type="date" {...field} />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+            <FormField
+              control={form.control}
               name="plateletsVolume"
               render={({ field }) => (
-                <FormItem className="col-span-2">
+                <FormItem className="col-span-1">
                   <FormLabel>Dung tích tiểu cầu (ml)</FormLabel>
                   <FormControl>
                     <Input type="number" {...field} onChange={e => field.onChange(parseInt(e.target.value) || 0)} />
@@ -137,17 +173,17 @@ export default function UpdateBloodUnitDialog({ open, onOpenChange, bloodUnitId 
             />
             <FormField
               control={form.control}
-              name="expiredDate"
+              name="plateletsExpiredDate"
               render={({ field }) => (
-                <FormItem className="col-span-2">
-                  <FormLabel>Ngày hết hạn</FormLabel>
+                <FormItem className="col-span-1">
+                  <FormLabel>Ngày hết hạn tiểu cầu</FormLabel>
                   <FormControl>
                     <Input type="date" {...field} />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
               )}
-            />            
+            />
             <Button type="submit" className="col-span-2" disabled={remainingVolume < 0}>Tách máu</Button>
           </form>
         </Form>
