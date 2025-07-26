@@ -32,6 +32,7 @@ import {
 import { toast } from "sonner"
 import { useUpdateBlog } from "../../services/blog"
 import { type Blog } from "../../services/blog"
+import { useSearchParams } from "react-router-dom";
 
 const formSchema = z.object({
   title: z.string().min(1, "Tiêu đề là bắt buộc"),
@@ -51,6 +52,7 @@ interface EditBlogDialogProps {
 }
 
 export function EditBlogDialog({ open, onOpenChange, blog }: EditBlogDialogProps) {
+  const [, setSearchParams] = useSearchParams();
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: {
@@ -67,13 +69,21 @@ export function EditBlogDialog({ open, onOpenChange, blog }: EditBlogDialogProps
 
   const onSubmit = async (values: z.infer<typeof formSchema>) => {
     try {
-      await updateMutation.mutateAsync({ id: blog.id, payload: values })
-      toast.success("Cập nhật bài blog thành công")
-      onOpenChange(false)
+      await updateMutation.mutateAsync({ id: blog.id, payload: values });
+      toast.success("Cập nhật bài blog thành công");
+
+      // ✅ Sau khi update → tự động set filter đúng status mới
+      setSearchParams((prev) => {
+        const newParams = new URLSearchParams(prev);
+        newParams.set("status", values.status);
+        return newParams;
+      });
+
+      onOpenChange(false);
     } catch (error) {
-      toast.error("Cập nhật bài blog thất bại")
+      toast.error("Cập nhật bài blog thất bại");
     }
-  }
+  };
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>

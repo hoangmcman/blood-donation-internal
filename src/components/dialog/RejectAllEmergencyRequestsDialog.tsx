@@ -74,9 +74,10 @@ export function RejectAllEmergencyRequestsDialog({ open, onOpenChange, bloodGrou
 
                     // ✅ Set filter ngoài list thành 'rejected'
                     setSearchParams((prev) => {
-                        prev.set("status", "rejected");
-                        prev.set("page", "1");
-                        return prev;
+                        const newParams = new URLSearchParams(prev);
+                        newParams.set("status", "rejected");
+                        newParams.set("page", "1");
+                        return newParams;
                     });
                 },
                 onError: () => {

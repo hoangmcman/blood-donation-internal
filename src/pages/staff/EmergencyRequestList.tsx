@@ -45,6 +45,7 @@ import {
 import { AccountUserRole } from "@/interfaces/account";
 import { BloodComponentTypeOnly, BloodGroup, BloodRh } from "@/interfaces/blood";
 import { EmergencyRequest, EmergencyRequestStatus } from "@/interfaces/emergency-request";
+import { useSearchParams } from "react-router-dom";
 
 import {
 	ColumnDef,
@@ -69,9 +70,7 @@ export default function EmergencyRequestList() {
 	const [rejectRequestId, setRejectRequestId] = useState<string | null>(null);
 	const [rejectAllOpen, setRejectAllOpen] = useState<boolean>(false);
 
-	const [statusFilter, setStatusFilter] = useState<EmergencyRequestStatus>(
-		EmergencyRequestStatus.PENDING
-	);
+
 	const [bloodGroupFilter, setBloodGroupFilter] = useState<BloodGroup | "">("");
 	const [bloodRhFilter, setBloodRhFilter] = useState<BloodRh | "">("");
 	const [bloodTypeComponentFilter, setBloodTypeComponentFilter] = useState<
@@ -81,8 +80,18 @@ export default function EmergencyRequestList() {
 		AccountUserRole.User
 	);
 
-	const [searchQuery, setSearchQuery] = useState<string>("");
 	const [debouncedSearch, setDebouncedSearch] = useState<string>("");
+
+	const [searchParams, setSearchParams] = useSearchParams();
+	const initialStatus =
+		(searchParams.get("status") as EmergencyRequestStatus) ||
+		EmergencyRequestStatus.PENDING;
+	const initialSearch = searchParams.get("search") || "";
+
+	const [statusFilter, setStatusFilter] =
+		useState<EmergencyRequestStatus>(initialStatus);
+	const [searchQuery, setSearchQuery] = useState<string>(initialSearch);
+
 
 	const [selectedRequestId, setSelectedRequestId] = useState<string | null>(null);
 	const [bloodUnitsRequestId, setBloodUnitsRequestId] = useState<string | null>(null);
@@ -108,6 +117,17 @@ export default function EmergencyRequestList() {
 		bloodTypeComponentFilter,
 		requestedByRoleFilter,
 	]);
+
+	useEffect(() => {
+		setSearchParams((prev) => {
+			const newParams = new URLSearchParams(prev);
+			newParams.set("status", statusFilter);
+			if (debouncedSearch) newParams.set("search", debouncedSearch);
+			else newParams.delete("search");
+			return newParams;
+		});
+	}, [statusFilter, debouncedSearch]);
+
 
 	// ✅ Call API - chỉ truyền các filter BE hỗ trợ
 	const { data, isLoading, error } = useGetEmergencyRequests({
@@ -203,14 +223,14 @@ export default function EmergencyRequestList() {
 						{status === "approved"
 							? "Đã duyệt"
 							: status === "rejected"
-							? "Đã từ chối"
-							: status === "pending"
-							? "Đang chờ"
-							: status === "contacts_provided"
-							? "Đã cung cấp liên hệ"
-							: status === "expired"
-							? "Đã hết hạn"
-							: status}
+								? "Đã từ chối"
+								: status === "pending"
+									? "Đang chờ"
+									: status === "contacts_provided"
+										? "Đã cung cấp liên hệ"
+										: status === "expired"
+											? "Đã hết hạn"
+											: status}
 					</Badge>
 				);
 			},
@@ -399,20 +419,20 @@ export default function EmergencyRequestList() {
 						bloodRhFilter ||
 						bloodTypeComponentFilter ||
 						requestedByRoleFilter !== AccountUserRole.User) && (
-						<Button
-							variant="outline"
-							onClick={() => {
-								setSearchQuery("");
-								setStatusFilter(EmergencyRequestStatus.PENDING);
-								setBloodGroupFilter("");
-								setBloodRhFilter("");
-								setBloodTypeComponentFilter("");
-								setRequestedByRoleFilter(AccountUserRole.User);
-							}}
-						>
-							Xóa bộ lọc
-						</Button>
-					)}
+							<Button
+								variant="outline"
+								onClick={() => {
+									setSearchQuery("");
+									setStatusFilter(EmergencyRequestStatus.PENDING);
+									setBloodGroupFilter("");
+									setBloodRhFilter("");
+									setBloodTypeComponentFilter("");
+									setRequestedByRoleFilter(AccountUserRole.User);
+								}}
+							>
+								Xóa bộ lọc
+							</Button>
+						)}
 				</div>
 			</div>
 

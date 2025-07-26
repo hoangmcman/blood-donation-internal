@@ -148,9 +148,10 @@ export function ApproveEmergencyRequestDialog({
 
           // ✅ Set filter ngoài list thành 'approved'
           setSearchParams((prev) => {
-            prev.set("status", "approved");
-            prev.set("page", "1");
-            return prev;
+            const newParams = new URLSearchParams(prev);
+            newParams.set("status", "approved");
+            newParams.set("page", "1");
+            return newParams;
           });
         },
         onError: () => {

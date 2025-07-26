@@ -13,6 +13,7 @@ import {
 } from "lucide-react";
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
+import { useSearchParams } from "react-router-dom";
 
 import { CreateBlogDialog } from "@/components/dialog/CreateBlogDialog";
 import { EditBlogDialog } from "@/components/dialog/EditBlogDialog";
@@ -105,10 +106,10 @@ const columns: ColumnDef<Blog, any>[] = [
 					{status === "draft"
 						? "Nháp"
 						: status === "published"
-						? "Đã xuất bản"
-						: status === "archived"
-						? "Lưu trữ"
-						: status}
+							? "Đã xuất bản"
+							: status === "archived"
+								? "Lưu trữ"
+								: status}
 				</Badge>
 			);
 		},
@@ -187,26 +188,30 @@ function BlogActions({ blog }: BlogActionsProps) {
 
 export default function BlogList() {
 	const [sorting, setSorting] = useState<SortingState>([]);
+	const [searchParams] = useSearchParams();
 	const [columnVisibility, setColumnVisibility] = useState<VisibilityState>({});
 	const [pagination, setPagination] = useState({
 		pageIndex: 0,
 		pageSize: 10,
 	});
+
+	const initialStatus = searchParams.get("status") || "published";
+	const initialSearch = searchParams.get("search") || "";
+
 	const [showCreateDialog, setShowCreateDialog] = useState(false);
-	const [statusFilter, setStatusFilter] = useState<string>("published");
-	const [searchQuery, setSearchQuery] = useState<string>("");
+	const [statusFilter, setStatusFilter] = useState<string>(initialStatus);
+	const [searchQuery, setSearchQuery] = useState<string>(initialSearch);
 	const [debouncedSearch, setDebouncedSearch] = useState<string>("");
 
-	// Debounce search input
+	// ✅ Debounce search
 	useEffect(() => {
 		const timer = setTimeout(() => {
 			setDebouncedSearch(searchQuery);
 		}, 500);
-
 		return () => clearTimeout(timer);
 	}, [searchQuery]);
 
-	// Reset pagination when filters change
+	// ✅ Reset pagination khi filter đổi
 	useEffect(() => {
 		setPagination((prev) => ({ ...prev, pageIndex: 0 }));
 	}, [statusFilter, debouncedSearch]);
@@ -217,6 +222,14 @@ export default function BlogList() {
 		page: pagination.pageIndex + 1,
 		limit: pagination.pageSize,
 	});
+
+	useEffect(() => {
+		const status = searchParams.get("status") || "published";
+		setStatusFilter(status);
+
+		const search = searchParams.get("search") || "";
+		setSearchQuery(search);
+	}, [searchParams]);
 
 	const table = useReactTable({
 		data: data?.data.data || [],
