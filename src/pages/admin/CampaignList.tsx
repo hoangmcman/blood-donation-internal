@@ -79,15 +79,15 @@ const columns: ColumnDef<Campaign, any>[] = [
 			const getStatusColor = (status: string) => {
 				switch (status.toLowerCase()) {
 					case "active":
-						return "bg-green-100 text-green-700";
-					case "inactive":
-						return "bg-yellow-100 text-yellow-700";
+						return "bg-green-100 text-green-700 hover:bg-green-200";
+					case "not_started":
+						return "bg-yellow-100 text-yellow-700 hover:bg-yellow-200";
 					case "completed":
-						return "bg-blue-100 text-blue-700";
-					case "cancelled":
-						return "bg-red-100 text-red-700";
+						return "bg-blue-100 text-blue-700 hover:bg-blue-200";
+					case "ended":
+						return "bg-red-100 text-red-700 hover:bg-red-200";
 					default:
-						return "bg-gray-100 text-gray-700";
+						return "bg-gray-100 text-gray-700 hover:bg-gray-200";
 				}
 			};
 
@@ -95,12 +95,12 @@ const columns: ColumnDef<Campaign, any>[] = [
 				<Badge className={getStatusColor(status)}>
 					{status === "active"
 						? "Hoạt động"
-						: status === "inactive"
-						? "Không hoạt động"
+						: status === "not_started"
+						? "Chưa bắt đầu"
 						: status === "completed"
 						? "Hoàn thành"
-						: status === "cancelled"
-						? "Đã hủy"
+						: status === "ended"
+						? "Đã kết thúc"
 						: status}
 				</Badge>
 			);
