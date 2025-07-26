@@ -22,7 +22,6 @@ import { useState, useEffect } from "react"
 import { useApproveEmergencyRequest, useGetEmergencyRequestById } from "@/services/emergencyrequest"
 import { useGetBloodUnits } from "@/services/inventory"
 import { BloodUnit } from "@/interfaces/inventory"
-import { useSearchParams } from "react-router-dom"
 
 interface ApproveEmergencyRequestDialogProps {
   open: boolean
@@ -59,7 +58,6 @@ export function ApproveEmergencyRequestDialog({
 }: ApproveEmergencyRequestDialogProps) {
   const { data, isLoading, error } = useGetEmergencyRequestById(requestId)
   const { mutate } = useApproveEmergencyRequest()
-  const [, setSearchParams] = useSearchParams();
 
   const { data: bloodUnitsData, isLoading: isBloodUnitsLoading, error: bloodUnitsError } = useGetBloodUnits({})
 
@@ -145,14 +143,6 @@ export function ApproveEmergencyRequestDialog({
         onSuccess: () => {
           toast.success("Duyệt yêu cầu thành công");
           onOpenChange(false);
-
-          // ✅ Set filter ngoài list thành 'approved'
-          setSearchParams((prev) => {
-            const newParams = new URLSearchParams(prev);
-            newParams.set("status", "approved");
-            newParams.set("page", "1");
-            return newParams;
-          });
         },
         onError: () => {
           toast.error("Duyệt yêu cầu thất bại");

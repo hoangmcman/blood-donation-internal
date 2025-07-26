@@ -21,18 +21,15 @@ import {
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { Select, SelectTrigger, SelectContent, SelectItem, SelectValue } from "@/components/ui/select";
-import { Textarea } from "@/components/ui/textarea";
 
-// ✅ Import API
+// Import API
 import { useGetDonationRequestById, useUpdateDonationRequestResult } from "@/services/donations";
 
 const formSchema = z.object({
   volumeMl: z.coerce.number().min(50, "Thể tích phải ít nhất 50ml"),
   bloodGroup: z.string().min(1, "Chọn nhóm máu"),
   bloodRh: z.string().min(1, "Chọn Rh"),
-  notes: z.string().optional(),
-  rejectReason: z.string().optional(),
-  status: z.enum(["completed", "rejected"]),
+  status: z.enum(["completed"]),
 });
 
 type FormValues = z.infer<typeof formSchema>;
@@ -57,26 +54,20 @@ export default function UpdateDonationResultDialog({
       volumeMl: 0,
       bloodGroup: "",
       bloodRh: "",
-      notes: "",
-      rejectReason: "",
-      status: "completed",
+      status: "completed", // Default to "completed"
     },
   });
 
   const { data: donationRequest, isLoading } = useGetDonationRequestById(memberId);
-
-  // ✅ Mutation cập nhật kết quả
   const { mutate: updateResult, isPending } = useUpdateDonationRequestResult();
 
   useEffect(() => {
     if (donationRequest) {
       form.reset({
-        volumeMl: 0,
+        volumeMl: donationRequest.volumeMl || 0,
         bloodGroup: donationRequest.donor.bloodType?.group || "",
         bloodRh: donationRequest.donor.bloodType?.rh || "",
-        notes: "",
-        rejectReason: "",
-        status: "completed",
+        status: "completed", // Always default to "completed"
       });
     }
   }, [donationRequest, form]);
@@ -93,8 +84,6 @@ export default function UpdateDonationResultDialog({
           volumeMl: values.volumeMl,
           bloodGroup: values.bloodGroup,
           bloodRh: values.bloodRh,
-          notes: values.notes,
-          rejectReason: values.rejectReason,
           status: values.status,
         },
       },
@@ -114,6 +103,8 @@ export default function UpdateDonationResultDialog({
     return null;
   }
 
+  const canChangeBloodType = donationRequest?.donor.canChangeBloodType || false;
+
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-[425px]">
@@ -131,7 +122,7 @@ export default function UpdateDonationResultDialog({
                 <FormItem>
                   <FormLabel>Thể tích máu (ml)</FormLabel>
                   <FormControl>
-                    <Input type="number" {...field} />
+                    <Input type="number" {...field} disabled />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
@@ -144,7 +135,11 @@ export default function UpdateDonationResultDialog({
               render={({ field }) => (
                 <FormItem>
                   <FormLabel>Nhóm máu</FormLabel>
-                  <Select onValueChange={field.onChange} value={field.value} disabled>
+                  <Select
+                    onValueChange={field.onChange}
+                    value={field.value}
+                    disabled={!canChangeBloodType && !!donationRequest?.donor.bloodType?.group}
+                  >
                     <FormControl>
                       <SelectTrigger>
                         <SelectValue placeholder="Chọn nhóm máu" />
@@ -169,7 +164,11 @@ export default function UpdateDonationResultDialog({
               render={({ field }) => (
                 <FormItem>
                   <FormLabel>Rh</FormLabel>
-                  <Select onValueChange={field.onChange} value={field.value} disabled>
+                  <Select
+                    onValueChange={field.onChange}
+                    value={field.value}
+                    disabled={!canChangeBloodType && !!donationRequest?.donor.bloodType?.rh}
+                  >
                     <FormControl>
                       <SelectTrigger>
                         <SelectValue placeholder="Chọn Rh" />
@@ -190,8 +189,8 @@ export default function UpdateDonationResultDialog({
               name="status"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Trạng thái kết quả</FormLabel>
-                  <Select onValueChange={field.onChange} value={field.value}>
+                  <FormLabel>Trạng thái</FormLabel>
+                  <Select onValueChange={field.onChange} value={field.value} disabled>
                     <FormControl>
                       <SelectTrigger>
                         <SelectValue placeholder="Chọn trạng thái" />
@@ -199,39 +198,8 @@ export default function UpdateDonationResultDialog({
                     </FormControl>
                     <SelectContent>
                       <SelectItem value="completed">Hoàn thành</SelectItem>
-                      <SelectItem value="rejected">Từ chối</SelectItem>
                     </SelectContent>
                   </Select>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-
-            {form.watch("status") === "rejected" && (
-              <FormField
-                control={form.control}
-                name="rejectReason"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Lý do từ chối</FormLabel>
-                    <FormControl>
-                      <Textarea {...field} />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-            )}
-
-            <FormField
-              control={form.control}
-              name="notes"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Ghi chú</FormLabel>
-                  <FormControl>
-                    <Textarea {...field} />
-                  </FormControl>
                   <FormMessage />
                 </FormItem>
               )}

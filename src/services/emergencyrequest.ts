@@ -159,9 +159,19 @@ export const useProvideContactsForEmergencyRequest = () => {
 		mutationFn: (variables: { id: string; body: ProvideContactsBody }) =>
 			provideContactsForEmergencyRequest(variables.id, variables.body),
 		onSuccess: (_, variables) => {
-			queryClient.invalidateQueries({ queryKey: ["emergencyRequestLogs"] });
-			queryClient.invalidateQueries({ queryKey: ["emergencyRequestLog", variables.id] });
-			queryClient.invalidateQueries({ queryKey: ["emergencyRequests"] });
+			// Invalidate all emergency request related queries to ensure fresh data
+			queryClient.invalidateQueries({ 
+				queryKey: ["emergencyRequestLogs"],
+				refetchType: "all" 
+			});
+			queryClient.invalidateQueries({ 
+				queryKey: ["emergencyRequestLog", variables.id],
+				refetchType: "all"  
+			});
+			queryClient.invalidateQueries({ 
+				queryKey: ["emergencyRequests"],
+				refetchType: "all"  
+			});
 		},
 	});
 };

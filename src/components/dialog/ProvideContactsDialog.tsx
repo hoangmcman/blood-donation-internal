@@ -22,7 +22,6 @@ import {
 	useProvideContactsForEmergencyRequest,
 } from "@/services/emergencyrequest";
 import { useGetBloodUnits } from "@/services/inventory";
-import { useSearchParams } from "react-router-dom";
 
 interface ProvideContactsDialogProps {
 	open: boolean;
@@ -35,7 +34,6 @@ export function ProvideContactsDialog({
 	onOpenChange,
 	requestId,
 }: ProvideContactsDialogProps) {
-	const [, setSearchParams] = useSearchParams();
 	const [selectedMemberIds, setSelectedMemberIds] = useState<string[]>([]);
 
 	// First get the emergency request to get the blood type parameters
@@ -122,13 +120,6 @@ export function ProvideContactsDialog({
 					toast.success("Đã cung cấp thông tin liên hệ thành công");
 					onOpenChange(false);
 					setSelectedMemberIds([]);
-
-					// ✅ Set filter ngoài list thành 'contact_provided'
-					setSearchParams((prev) => {
-						prev.set("status", "contact_provided");
-						prev.set("page", "1");
-						return prev;
-					});
 				},
 				onError: (error: any) => {
 					toast.error(`Lỗi: ${error.message || "Không thể cung cấp thông tin liên hệ"}`);
