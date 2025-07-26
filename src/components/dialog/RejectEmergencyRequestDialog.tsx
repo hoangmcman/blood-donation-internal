@@ -15,6 +15,7 @@ import { Textarea } from "@/components/ui/textarea"
 import { toast } from "sonner"
 import { useRejectEmergencyRequest } from "../../services/emergencyrequest"
 import { useGetEmergencyRequestById } from "../../services/emergencyrequest"
+import { useSearchParams } from "react-router-dom"
 
 const formSchema = z.object({
   rejectionReason: z.string().min(1, { message: "Lý do từ chối là bắt buộc" }),
@@ -29,6 +30,8 @@ interface RejectEmergencyRequestDialogProps {
 export function RejectEmergencyRequestDialog({ open, onOpenChange, requestId }: RejectEmergencyRequestDialogProps) {
   const { data, isLoading, error } = useGetEmergencyRequestById(requestId)
   const { mutate } = useRejectEmergencyRequest()
+  const [, setSearchParams] = useSearchParams();
+
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: {
@@ -42,16 +45,23 @@ export function RejectEmergencyRequestDialog({ open, onOpenChange, requestId }: 
         { id: requestId, payload: values },
         {
           onSuccess: () => {
-            toast.success("Từ chối yêu cầu thành công")
-            onOpenChange(false)
+            toast.success("Từ chối yêu cầu thành công");
+            onOpenChange(false);
+
+            // ✅ Set filter ngoài list thành 'rejected'
+            setSearchParams((prev) => {
+              prev.set("status", "rejected");
+              prev.set("page", "1");
+              return prev;
+            });
           },
           onError: () => {
-            toast.error("Từ chối yêu cầu thất bại")
+            toast.error("Từ chối yêu cầu thất bại");
           },
         }
-      )
+      );
     }
-  }
+  };
 
   if (isLoading) {
     return (

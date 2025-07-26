@@ -22,6 +22,7 @@ import { useState, useEffect } from "react"
 import { useApproveEmergencyRequest, useGetEmergencyRequestById } from "@/services/emergencyrequest"
 import { useGetBloodUnits } from "@/services/inventory"
 import { BloodUnit } from "@/interfaces/inventory"
+import { useSearchParams } from "react-router-dom"
 
 interface ApproveEmergencyRequestDialogProps {
   open: boolean
@@ -58,6 +59,7 @@ export function ApproveEmergencyRequestDialog({
 }: ApproveEmergencyRequestDialogProps) {
   const { data, isLoading, error } = useGetEmergencyRequestById(requestId)
   const { mutate } = useApproveEmergencyRequest()
+  const [, setSearchParams] = useSearchParams();
 
   const { data: bloodUnitsData, isLoading: isBloodUnitsLoading, error: bloodUnitsError } = useGetBloodUnits({})
 
@@ -121,35 +123,42 @@ export function ApproveEmergencyRequestDialog({
   const requiredVolume = request.requiredVolume ?? 0
 
   const handleApprove = () => {
-    const selectedUnit = filteredBloodUnits.find((u) => u.id === selectedBloodUnitId)
+    const selectedUnit = filteredBloodUnits.find((u) => u.id === selectedBloodUnitId);
     if (!selectedUnit) {
-      toast.error("Vui lòng chọn một đơn vị máu trước khi duyệt")
-      return
+      toast.error("Vui lòng chọn một đơn vị máu trước khi duyệt");
+      return;
     }
 
     if (selectedUnit.remainingVolume < requiredVolume) {
-      toast.error("Không đủ lượng máu trong đơn vị này để duyệt yêu cầu")
-      return
+      toast.error("Không đủ lượng máu trong đơn vị này để duyệt yêu cầu");
+      return;
     }
 
     const payload = {
       bloodUnitId: selectedUnit.id,
       usedVolume: requiredVolume,
-    }
+    };
 
     mutate(
       { id: requestId, payload },
       {
         onSuccess: () => {
-          toast.success("Duyệt yêu cầu thành công")
-          onOpenChange(false)
+          toast.success("Duyệt yêu cầu thành công");
+          onOpenChange(false);
+
+          // ✅ Set filter ngoài list thành 'approved'
+          setSearchParams((prev) => {
+            prev.set("status", "approved");
+            prev.set("page", "1");
+            return prev;
+          });
         },
         onError: () => {
-          toast.error("Duyệt yêu cầu thất bại")
+          toast.error("Duyệt yêu cầu thất bại");
         },
       }
-    )
-  }
+    );
+  };
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>

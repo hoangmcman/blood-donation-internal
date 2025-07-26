@@ -22,6 +22,7 @@ import {
 	useProvideContactsForEmergencyRequest,
 } from "@/services/emergencyrequest";
 import { useGetBloodUnits } from "@/services/inventory";
+import { useSearchParams } from "react-router-dom";
 
 interface ProvideContactsDialogProps {
 	open: boolean;
@@ -34,6 +35,7 @@ export function ProvideContactsDialog({
 	onOpenChange,
 	requestId,
 }: ProvideContactsDialogProps) {
+	const [, setSearchParams] = useSearchParams();
 	const [selectedMemberIds, setSelectedMemberIds] = useState<string[]>([]);
 
 	// First get the emergency request to get the blood type parameters
@@ -98,17 +100,15 @@ export function ProvideContactsDialog({
 			return;
 		}
 
-		// Create the payload from selected members
-		const selectedMembers = uniqueMembers.filter((member) => {
-			const memberId = member.member.id;
-			return selectedMemberIds.includes(memberId);
-		});
+		const selectedMembers = uniqueMembers.filter((member) =>
+			selectedMemberIds.includes(member.member.id)
+		);
 
 		const suggestedContacts = selectedMembers.map((member) => ({
-			id: member.member.id, // Using actual member ID
+			id: member.member.id,
 			firstName: member.member.firstName,
 			lastName: member.member.lastName,
-			phone: member.member.phone, // Now using the actual phone from member field
+			phone: member.member.phone,
 			bloodType: member.member.bloodType || { group: "O" as BloodGroup, rh: "+" as BloodRh },
 		}));
 
@@ -122,6 +122,13 @@ export function ProvideContactsDialog({
 					toast.success("Đã cung cấp thông tin liên hệ thành công");
 					onOpenChange(false);
 					setSelectedMemberIds([]);
+
+					// ✅ Set filter ngoài list thành 'contact_provided'
+					setSearchParams((prev) => {
+						prev.set("status", "contact_provided");
+						prev.set("page", "1");
+						return prev;
+					});
 				},
 				onError: (error: any) => {
 					toast.error(`Lỗi: ${error.message || "Không thể cung cấp thông tin liên hệ"}`);

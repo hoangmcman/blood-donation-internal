@@ -16,6 +16,7 @@ import { toast } from "sonner"
 import { useRejectAllEmergencyRequests } from "../../services/emergencyrequest"
 import { useGetEmergencyRequestLogs } from "../../services/emergencyrequest"
 import { useEffect } from "react"
+import { useSearchParams } from "react-router-dom"
 
 const formSchema = z.object({
     bloodGroup: z.string().optional(),
@@ -35,6 +36,8 @@ interface RejectAllEmergencyRequestsDialogProps {
 export function RejectAllEmergencyRequestsDialog({ open, onOpenChange, bloodGroups, bloodRhs, bloodTypeComponents }: RejectAllEmergencyRequestsDialogProps) {
     const { mutate } = useRejectAllEmergencyRequests()
     const { data } = useGetEmergencyRequestLogs(1, 1000) // Fetch all data for filtering options
+    const [, setSearchParams] = useSearchParams();
+
     const form = useForm<z.infer<typeof formSchema>>({
         resolver: zodResolver(formSchema),
         defaultValues: {
@@ -64,18 +67,24 @@ export function RejectAllEmergencyRequestsDialog({ open, onOpenChange, bloodGrou
                 bloodTypeComponent: values.bloodTypeComponent,
                 rejectionReason: values.reason,
             },
-
             {
                 onSuccess: () => {
-                    toast.success("Từ chối tất cả yêu cầu thành công")
-                    onOpenChange(false)
+                    toast.success("Từ chối tất cả yêu cầu thành công");
+                    onOpenChange(false);
+
+                    // ✅ Set filter ngoài list thành 'rejected'
+                    setSearchParams((prev) => {
+                        prev.set("status", "rejected");
+                        prev.set("page", "1");
+                        return prev;
+                    });
                 },
                 onError: () => {
-                    toast.error("Từ chối tất cả yêu cầu thất bại")
+                    toast.error("Từ chối tất cả yêu cầu thất bại");
                 },
             }
-        )
-    }
+        );
+    };
 
     return (
         <Dialog open={open} onOpenChange={onOpenChange}>

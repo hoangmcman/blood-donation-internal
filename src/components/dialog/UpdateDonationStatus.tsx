@@ -25,6 +25,7 @@ import {
 import { Textarea } from "@/components/ui/textarea";
 import { useGetDonationRequestById, useUpdateDonationStatus } from "@/services/donations";
 import { zodResolver } from "@hookform/resolvers/zod";
+import { useSearchParams } from "react-router-dom";
 
 interface UpdateDonationRequestDialogProps {
 	open: boolean;
@@ -83,7 +84,7 @@ export default function UpdateDonationRequestDialog({
 
 	const { data: donationData } = useGetDonationRequestById(donationId);
 	const { mutate } = useUpdateDonationStatus();
-
+	const [, setSearchParams] = useSearchParams();
 	useEffect(() => {
 		if (donationData) {
 			form.reset({
@@ -97,27 +98,19 @@ export default function UpdateDonationRequestDialog({
 	}, [donationData, form]);
 
 	const onSubmit = (values: z.infer<typeof formSchema>) => {
-		console.log("Submitting values:", values);
-
-		const currentStatus = (donationData?.currentStatus as Status) || "pending";
 		const selectedStatus = values.status as Status;
-		const isValidTransition = VALID_TRANSITIONS[currentStatus].includes(selectedStatus);
-
-		if (!isValidTransition) {
-			toast.error("Trạng thái không hợp lệ theo luồng quy trình. Vui lòng kiểm tra lại!");
-			return;
-		}
-
 		mutate(
 			{ id: donationId, statusData: { ...values, status: selectedStatus } },
 			{
 				onSuccess: () => {
 					toast.success("Cập nhật trạng thái thành công");
 					onOpenChange(false);
-					window.location.reload();
-				},
-				onError: () => {
-					toast.error("Cập nhật trạng thái thất bại");
+
+					// ✅ Cập nhật luôn filter ngoài bằng URL param
+					setSearchParams((prev) => {
+						prev.set("status", selectedStatus);
+						return prev;
+					});
 				},
 			}
 		);

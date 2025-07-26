@@ -53,6 +53,7 @@ import {
 	useReactTable,
 	VisibilityState,
 } from "@tanstack/react-table";
+import { useSearchParams } from "react-router-dom";
 
 import Loader from "./loader";
 
@@ -151,7 +152,7 @@ const getColumns = (meta?: {
 								</DropdownMenuItem>
 
 								{/* ✅ Ẩn khi đã completed */}
-								{donation.currentStatus !== "completed"&& donation.currentStatus !== "result_returned" && (
+								{donation.currentStatus !== "completed" && donation.currentStatus !== "result_returned" && (
 									<DropdownMenuItem
 										onClick={() => {
 											setOpenUpdate(true);
@@ -189,17 +190,18 @@ export function DonationTable({
 	onView?: (id: string) => void;
 	onUpdate?: (id: string, date: string) => void;
 }) {
+	const [searchParams, setSearchParams] = useSearchParams();
 	const [sorting, setSorting] = useState<SortingState>([]);
 	const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([]);
 	const [columnVisibility, setColumnVisibility] = useState<VisibilityState>({});
 	const [pagination, setPagination] = useState({
-		pageIndex: 0,
+		pageIndex: Number(searchParams.get("page") || 0),
 		pageSize: 10,
 	});
 
 	// Filter states
-	const [statusFilter, setStatusFilter] = useState<string>("");
-	const [campaignFilter, setCampaignFilter] = useState<string>("");
+	const statusFilter = searchParams.get("status") || "";
+	const campaignFilter = searchParams.get("campaignId") || "";
 
 	// Fetch campaigns for filter dropdown (only active campaigns)
 	const { data: campaignsData } = useGetCampaigns({ status: CampaignStatus.ACTIVE });
@@ -222,15 +224,35 @@ export function DonationTable({
 	// Reset pagination when filters change
 	const resetPagination = () => {
 		setPagination({ pageIndex: 0, pageSize: 10 });
+		setSearchParams((prev) => {
+			prev.set("page", "1");
+			return prev;
+		});
 	};
 
 	const handleStatusChange = (value: string) => {
-		setStatusFilter(value);
+		setSearchParams((prev) => {
+			if (value) {
+				prev.set("status", value);
+			} else {
+				prev.delete("status");
+			}
+			prev.set("page", "1");
+			return prev;
+		});
 		resetPagination();
 	};
 
 	const handleCampaignChange = (value: string) => {
-		setCampaignFilter(value);
+		setSearchParams((prev) => {
+			if (value) {
+				prev.set("campaignId", value);
+			} else {
+				prev.delete("campaignId");
+			}
+			prev.set("page", "1");
+			return prev;
+		});
 		resetPagination();
 	};
 
@@ -306,8 +328,7 @@ export function DonationTable({
 					<Button
 						variant="outline"
 						onClick={() => {
-							setStatusFilter("");
-							setCampaignFilter("");
+							setSearchParams({});
 							resetPagination();
 						}}
 					>
