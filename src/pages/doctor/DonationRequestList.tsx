@@ -141,42 +141,15 @@ export default function DonationRequestList() {
 				const status = row.getValue("currentStatus") as string;
 				const getStatusColor = (status: string) => {
 					switch (status.toLowerCase()) {
-						case "pending":
-							return "bg-yellow-100 text-yellow-700";
-						case "completed":
-							return "bg-green-100 text-green-700";
-						case "rejected":
-						case "appointment_cancelled":
-						case "appointment_absent":
-						case "customer_cancelled":
-							return "bg-red-100 text-red-700";
-						case "appointment_confirmed":
+						case "result_returned":
 							return "bg-blue-100 text-blue-700";
-						case "customer_checked_in":
-							return "bg-purple-100 text-purple-700";
 						default:
 							return "bg-gray-100 text-gray-700";
 					}
 				};
 				return (
 					<Badge className={getStatusColor(status)}>
-						{status === "pending"
-							? "Đang chờ"
-							: status === "completed"
-							? "Hoàn thành"
-							: status === "rejected"
-							? "Bị từ chối"
-							: status === "appointment_cancelled"
-							? "Hẹn hủy"
-							: status === "appointment_absent"
-							? "Vắng hẹn"
-							: status === "customer_cancelled"
-							? "Khách hủy"
-							: status === "appointment_confirmed"
-							? "Hẹn xác nhận"
-							: status === "customer_checked_in"
-							? "Khách đã đến"
-							: status.charAt(0).toUpperCase() + status.slice(1)}
+						{status === "result_returned" ? "Đã trả kết quả" : status}
 					</Badge>
 				);
 			},
@@ -205,14 +178,7 @@ export default function DonationRequestList() {
 
 	const filteredData =
 		data?.data.data.filter(
-			(donationRequest) =>
-				![
-					"pending",
-					"rejected",
-					"appointment_cancelled",
-					"appointment_absent",
-					"customer_cancelled",
-				].includes(donationRequest.currentStatus)
+			(donationRequest) => donationRequest.currentStatus === "result_returned"
 		) || [];
 
 	const table = useReactTable({

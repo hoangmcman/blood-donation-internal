@@ -74,17 +74,6 @@ export function EditCampaignDialog({ open, onOpenChange, campaign }: EditCampaig
 	const updateMutation = useUpdateCampaign();
 
 	const onSubmit = async (values: z.infer<typeof formSchema>) => {
-		const start = new Date(values.startDate);
-		const end = new Date(values.endDate || values.startDate);
-		const bloodDate = new Date(values.bloodCollectionDate);
-		const diffStart = (bloodDate.getTime() - start.getTime()) / (1000 * 60 * 60 * 24);
-		const diffEnd = (bloodDate.getTime() - end.getTime()) / (1000 * 60 * 60 * 24);
-		if (!(diffStart > 7 && diffEnd >= 1)) {
-			toast.error(
-				"Ngày thu thập máu phải cách ngày bắt đầu ít nhất 1 tuần và sau ngày kết thúc ít nhất 1 ngày"
-			);
-			return;
-		}
 		try {
 			await updateMutation.mutateAsync({ id: campaign.id, payload: values });
 			toast.success("Cập nhật chiến dịch thành công");
