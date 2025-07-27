@@ -44,10 +44,15 @@ export const getDonationRequests = async (
 	id: string,
 	status?: string,
 	limit: number = 10,
-	page: number = 1
+	page: number = 1,
+	isBloodUnitCreated?: boolean
 ): Promise<DonationRequestResponse> => {
-	const params: { limit: number; page: number; status?: string } = { limit, page };
+	const params: { limit: number; page: number; status?: string; isBloodUnitCreated?: boolean } = {
+		limit,
+		page,
+	};
 	if (status) params.status = status;
+	if (isBloodUnitCreated !== undefined) params.isBloodUnitCreated = isBloodUnitCreated;
 
 	const response = await api.get<DonationRequestResponse>(`/campaigns/${id}/donation-requests`, {
 		params,
@@ -59,10 +64,11 @@ export const useGetDonationRequests = (
 	id: string,
 	status?: string,
 	limit: number = 10,
-	page: number = 1
+	page: number = 1,
+	isBloodUnitCreated?: boolean
 ) => {
 	return useQuery({
-		queryKey: ["donationRequests", id, status, page, limit],
+		queryKey: ["donationRequests", id, status, page, limit, isBloodUnitCreated],
 		queryFn: () => getDonationRequests(id, status, limit, page),
 		enabled: !!id,
 	});
