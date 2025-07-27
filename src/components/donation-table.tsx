@@ -60,10 +60,7 @@ import {
 
 import Loader from "./loader";
 
-const getColumns = (meta?: {
-	onView?: (id: string) => void;
-	onUpdate?: (id: string, date: string | { status: string }) => void;
-}): ColumnDef<DonationRequest>[] => [
+const getColumns = (): ColumnDef<DonationRequest>[] => [
 	{
 		accessorKey: "donor.firstName",
 		header: "Tên người hiến",
@@ -157,117 +154,103 @@ const getColumns = (meta?: {
 	{
 		id: "actions",
 		header: "Hành động",
-		cell: ({ row }) => {
-			const [openView, setOpenView] = useState(false);
-			const [openUpdate, setOpenUpdate] = useState(false);
-			const [openResultDialog, setOpenResultDialog] = useState(false);
-			const [selectedStatus, setSelectedStatus] = useState<string | null>(null);
-			const donation = row.original;
-
-			const handleStatusUpdate = (status: string) => {
-				if (status === "customer_checked_in") {
-					setSelectedStatus(status);
-					setOpenUpdate(true); // Open dialog for volumeMl input when completing
-				} else if (status === "completed") {
-					setOpenResultDialog(true); // Open result dialog for completed status
-				} else {
-					setSelectedStatus(status); // Set the selected status for other updates
-					setOpenUpdate(true); // Open dialog for other status updates
-				}
-			};
-
-			const handleUpdateDialogChange = (open: boolean) => {
-				setOpenUpdate(open);
-				if (!open) {
-					setSelectedStatus(null); // Reset selected status when dialog closes
-				}
-			};
-
-			return (
-				<>
-					<DropdownMenu>
-						<DropdownMenuTrigger asChild>
-							<Button variant="ghost" className="h-8 w-8 p-0">
-								<MoreVerticalIcon className="h-4 w-4" />
-								<span className="sr-only">Mở menu</span>
-							</Button>
-						</DropdownMenuTrigger>
-						<DropdownMenuContent align="end">
-							<DropdownMenuItem
-								onClick={() => {
-									setOpenView(true);
-								}}
-							>
-								<Eye className="h-4 w-4" />
-								Xem chi tiết
-							</DropdownMenuItem>
-
-							{donation.currentStatus !== "completed" &&
-								donation.currentStatus !== "result_returned" && (
-									<>
-										{donation.currentStatus === "appointment_confirmed" && (
-											<DropdownMenuItem onClick={() => handleStatusUpdate("appointment_confirmed")}>
-												<Edit className="h-4 w-4" />
-												Cập nhật trạng thái
-											</DropdownMenuItem>
-										)}
-										{donation.currentStatus === "customer_checked_in" && (
-											<>
-												<DropdownMenuItem onClick={() => handleStatusUpdate("customer_checked_in")}>
-													<Check className="h-4 w-4" />
-													Hoàn tất
-												</DropdownMenuItem>
-												<DropdownMenuItem onClick={() => handleStatusUpdate("not_qualified")}>
-													<Ban className="h-4 w-4" />
-													Không đủ điều kiện
-												</DropdownMenuItem>
-												<DropdownMenuItem
-													onClick={() => handleStatusUpdate("no_show_after_checkin")}
-												>
-													<Ban className="h-4 w-4" />
-													Không xuất hiện sau check-in
-												</DropdownMenuItem>
-											</>
-										)}
-									</>
-								)}
-							{donation.currentStatus === "completed" && (
-								<DropdownMenuItem onClick={() => handleStatusUpdate("completed")}>
-									<Edit className="h-4 w-4" />
-									Cập nhật trạng thái
-								</DropdownMenuItem>
-							)}
-						</DropdownMenuContent>
-					</DropdownMenu>
-
-					<ViewDonationDetail open={openView} onOpenChange={setOpenView} donationId={donation.id} />
-
-					<UpdateDonationStatus
-						open={openUpdate}
-						onOpenChange={handleUpdateDialogChange}
-						donationId={donation.id}
-						selectedStatus={selectedStatus!}
-					/>
-
-					<UpdateDonationResultDialog
-						open={openResultDialog}
-						onOpenChange={setOpenResultDialog}
-						memberId={donation.id}
-						memberName={donation.donor.firstName + " " + donation.donor.lastName}
-					/>
-				</>
-			);
-		},
+		cell: ({ row }) => <DonationActionsCell donation={row.original} />,
 	},
 ];
 
-export function DonationTable({
-	onView,
-	onUpdate,
-}: {
-	onView?: (id: string) => void;
-	onUpdate?: (id: string, date: string | { status: string }) => void;
-}) {
+function DonationActionsCell({ donation }: { donation: DonationRequest }) {
+	const [openView, setOpenView] = useState(false);
+	const [openUpdate, setOpenUpdate] = useState(false);
+	const [openResultDialog, setOpenResultDialog] = useState(false);
+	const [selectedStatus, setSelectedStatus] = useState<string | null>(null);
+
+	const handleStatusUpdate = (status: string) => {
+		if (status === "customer_checked_in") {
+			setSelectedStatus(status);
+			setOpenUpdate(true);
+		} else if (status === "completed") {
+			setOpenResultDialog(true);
+		} else {
+			setSelectedStatus(status);
+			setOpenUpdate(true);
+		}
+	};
+
+	const handleUpdateDialogChange = (open: boolean) => {
+		setOpenUpdate(open);
+		if (!open) setSelectedStatus(null);
+	};
+
+	return (
+		<>
+			<DropdownMenu>
+				<DropdownMenuTrigger asChild>
+					<Button variant="ghost" className="h-8 w-8 p-0">
+						<MoreVerticalIcon className="h-4 w-4" />
+						<span className="sr-only">Mở menu</span>
+					</Button>
+				</DropdownMenuTrigger>
+				<DropdownMenuContent align="end">
+					<DropdownMenuItem onClick={() => setOpenView(true)}>
+						<Eye className="h-4 w-4" />
+						Xem chi tiết
+					</DropdownMenuItem>
+
+					{donation.currentStatus !== "completed" &&
+						donation.currentStatus !== "result_returned" && (
+							<>
+								{donation.currentStatus === "appointment_confirmed" && (
+									<DropdownMenuItem onClick={() => handleStatusUpdate("appointment_confirmed")}>
+										<Edit className="h-4 w-4" />
+										Cập nhật trạng thái
+									</DropdownMenuItem>
+								)}
+								{donation.currentStatus === "customer_checked_in" && (
+									<>
+										<DropdownMenuItem onClick={() => handleStatusUpdate("customer_checked_in")}>
+											<Check className="h-4 w-4" />
+											Hoàn tất
+										</DropdownMenuItem>
+										<DropdownMenuItem onClick={() => handleStatusUpdate("not_qualified")}>
+											<Ban className="h-4 w-4" />
+											Không đủ điều kiện
+										</DropdownMenuItem>
+										<DropdownMenuItem onClick={() => handleStatusUpdate("no_show_after_checkin")}>
+											<Ban className="h-4 w-4" />
+											Không xuất hiện sau check-in
+										</DropdownMenuItem>
+									</>
+								)}
+							</>
+						)}
+
+					{donation.currentStatus === "completed" && (
+						<DropdownMenuItem onClick={() => handleStatusUpdate("completed")}>
+							<Edit className="h-4 w-4" />
+							Cập nhật trạng thái
+						</DropdownMenuItem>
+					)}
+				</DropdownMenuContent>
+			</DropdownMenu>
+
+			<ViewDonationDetail open={openView} onOpenChange={setOpenView} donationId={donation.id} />
+			<UpdateDonationStatus
+				open={openUpdate}
+				onOpenChange={handleUpdateDialogChange}
+				donationId={donation.id}
+				selectedStatus={selectedStatus!}
+			/>
+			<UpdateDonationResultDialog
+				open={openResultDialog}
+				onOpenChange={setOpenResultDialog}
+				memberId={donation.id}
+				memberName={donation.donor.firstName + " " + donation.donor.lastName}
+			/>
+		</>
+	);
+}
+
+export function DonationTable() {
 	const [searchParams, setSearchParams] = useSearchParams();
 	const [sorting, setSorting] = useState<SortingState>([]);
 	const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([]);
@@ -343,7 +326,7 @@ export function DonationTable({
 
 	const table = useReactTable<DonationRequest>({
 		data: donationRequests,
-		columns: getColumns({ onView, onUpdate }),
+		columns: getColumns(),
 		state: {
 			sorting,
 			columnFilters,
