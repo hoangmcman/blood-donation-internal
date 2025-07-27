@@ -20,6 +20,16 @@ import ViewDonationDetail from "@/components/dialog/ViewDonationDetail";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
+	AlertDialog,
+	AlertDialogAction,
+	AlertDialogCancel,
+	AlertDialogContent,
+	AlertDialogDescription,
+	AlertDialogFooter,
+	AlertDialogHeader,
+	AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
+import {
 	DropdownMenu,
 	DropdownMenuContent,
 	DropdownMenuItem,
@@ -43,7 +53,7 @@ import {
 import { Campaign, CampaignStatus } from "@/interfaces/campaign";
 import { DonationRequest } from "@/interfaces/donation";
 import { useGetCampaigns } from "@/services/campaign";
-import { useGetDonationRequests } from "@/services/donations";
+import { useGetDonationRequests, useUpdateDonationStatus } from "@/services/donations";
 import { SortableContext, verticalListSortingStrategy } from "@dnd-kit/sortable";
 import {
 	ColumnDef,
@@ -79,7 +89,11 @@ const getColumns = (): ColumnDef<DonationRequest>[] => [
 	{
 		accessorKey: "bloodType",
 		header: "Nhóm máu",
-		cell: ({ row }) => `${row.original.donor.bloodType?.group} ${row.original.donor.bloodType?.rh}`, // Vì DonationRequest không có bloodType, nên hiện tạm "Không có"
+		cell: ({ row }) => {
+			const bloodGroup = row.original.donor.bloodType?.group;
+			const bloodRh = row.original.donor.bloodType?.rh;
+			return (bloodGroup && bloodRh) ? `${bloodGroup} ${bloodRh}` : "Nhóm máu chưa xác định";
+		},
 	},
 	{
 		accessorKey: "currentStatus",
@@ -162,16 +176,35 @@ function DonationActionsCell({ donation }: { donation: DonationRequest }) {
 	const [openView, setOpenView] = useState(false);
 	const [openUpdate, setOpenUpdate] = useState(false);
 	const [openResultDialog, setOpenResultDialog] = useState(false);
+	const [showConfirmDialog, setShowConfirmDialog] = useState(false);
 	const [selectedStatus, setSelectedStatus] = useState<string | null>(null);
+	
+	const updateStatusMutation = useUpdateDonationStatus();
+
+	const handleConfirmStatusUpdate = async () => {
+		if (!selectedStatus) return;
+		
+		try {
+			await updateStatusMutation.mutateAsync({
+				id: donation.id,
+				statusData: { status: selectedStatus }
+			});
+			setShowConfirmDialog(false);
+			setSelectedStatus(null);
+		} catch (error) {
+			console.error("Failed to update status:", error);
+		}
+	};
 
 	const handleStatusUpdate = (status: string) => {
-		if (status === "customer_checked_in") {
-			setSelectedStatus(status);
+		setSelectedStatus(status);
+		if (status === "not_qualified" || status === "no_show_after_checkin") {
+			setShowConfirmDialog(true);
+		} else if (status === "customer_checked_in") {
 			setOpenUpdate(true);
 		} else if (status === "completed") {
 			setOpenResultDialog(true);
 		} else {
-			setSelectedStatus(status);
 			setOpenUpdate(true);
 		}
 	};
@@ -179,6 +212,13 @@ function DonationActionsCell({ donation }: { donation: DonationRequest }) {
 	const handleUpdateDialogChange = (open: boolean) => {
 		setOpenUpdate(open);
 		if (!open) setSelectedStatus(null);
+	};
+
+	const getConfirmationMessage = (status: string | null) => {
+		if (!status) return "";
+		return status === "not_qualified" 
+			? "Bạn có chắc chắn muốn đánh dấu người hiến máu này là không đủ điều kiện?"
+			: "Bạn có chắc chắn muốn đánh dấu người hiến máu này là không xuất hiện sau check-in?";
 	};
 
 	return (
@@ -246,6 +286,32 @@ function DonationActionsCell({ donation }: { donation: DonationRequest }) {
 				memberId={donation.id}
 				memberName={donation.donor.firstName + " " + donation.donor.lastName}
 			/>
+
+			<AlertDialog open={showConfirmDialog} onOpenChange={setShowConfirmDialog}>
+				<AlertDialogContent>
+					<AlertDialogHeader>
+						<AlertDialogTitle>Xác nhận thay đổi trạng thái</AlertDialogTitle>
+						<AlertDialogDescription>
+							{getConfirmationMessage(selectedStatus)}
+						</AlertDialogDescription>
+					</AlertDialogHeader>
+					<AlertDialogFooter>
+						<AlertDialogCancel onClick={() => setSelectedStatus(null)}>Hủy</AlertDialogCancel>
+						<AlertDialogAction onClick={handleConfirmStatusUpdate}>
+							{updateStatusMutation.isPending ? (
+								<>
+									<div className="mr-2 h-4 w-4">
+										<Loader />
+									</div>
+									Đang xử lý...
+								</>
+							) : (
+								"Xác nhận"
+							)}
+						</AlertDialogAction>
+					</AlertDialogFooter>
+				</AlertDialogContent>
+			</AlertDialog>
 		</>
 	);
 }

@@ -40,6 +40,7 @@ export interface CreateBloodUnitPayload {
   bloodVolume: number;
   remainingVolume: number;
   expiredDate: string;
+  donationRequestId: string;
 }
 
 // BloodUnitAction Interfaces

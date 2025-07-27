@@ -69,14 +69,6 @@ export function CreateCampaignDialog({ open, onOpenChange }: CreateCampaignDialo
   const onSubmit = async (values: z.infer<typeof formSchema>) => {
     const start = new Date(values.startDate);
     const end = new Date(values.endDate || values.startDate);
-    const bloodDate = new Date(values.bloodCollectionDate);
-    const diffStart = (bloodDate.getTime() - start.getTime()) / (1000 * 60 * 60 * 24);
-    const diffEnd = (bloodDate.getTime() - end.getTime()) / (1000 * 60 * 60 * 24);
-    if (!(diffStart > 7 && diffEnd >= 3)) {
-      toast.error("Ngày thu thập máu phải cách ngày bắt đầu ít nhất 1 tuần và sau ngày kết thúc ít nhất 3 ngày");
-      return;
-    }
-
     const currentDate = new Date();
     let status: "not_started" | "active" | "ended";
     if (currentDate < start) {

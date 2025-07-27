@@ -10,7 +10,7 @@ import {
 	Stethoscope,
 } from "lucide-react";
 import { useEffect, useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useSearchParams } from "react-router-dom";
 
 import Loader from "@/components/loader";
 import { Badge } from "@/components/ui/badge";
@@ -104,13 +104,7 @@ const columns: ColumnDef<Campaign, any>[] = [
 					case "not_started":
 						return "bg-blue-100 text-blue-700 hover:bg-blue-200";
 					case "ended":
-						return "bg-gray-100 text-gray-700 hover:bg-gray-200";
-					case "inactive":
-						return "bg-yellow-100 text-yellow-700 hover:bg-yellow-200";
-					case "completed":
-						return "bg-blue-100 text-blue-700 hover:bg-blue-200";
-					case "cancelled":
-						return "bg-red-100 text-red-700 hover:bg-red-200";
+						return "bg-gray-100 text-gray-700 hover:bg-gray-200";				
 					default:
 						return "bg-gray-100 text-gray-700 hover:bg-gray-200";
 				}
@@ -187,15 +181,22 @@ function CampaignActions({ campaign }: CampaignActionsProps) {
 }
 
 export default function StaffCampaignList() {
+	const [searchParams, setSearchParams] = useSearchParams();
 	const [sorting, setSorting] = useState<SortingState>([]);
 	const [columnVisibility, setColumnVisibility] = useState<VisibilityState>({});
 	const [pagination, setPagination] = useState({
 		pageIndex: 0,
 		pageSize: 10,
 	});
-	const [statusFilter, setStatusFilter] = useState<string>("active");
-	const [searchQuery, setSearchQuery] = useState<string>("");
-	const [debouncedSearch, setDebouncedSearch] = useState<string>("");
+	
+	// Get initial filter values from URL params or use defaults
+	const [statusFilter, setStatusFilter] = useState<string>(
+		searchParams.get("status") || "ended"
+	);
+	const [searchQuery, setSearchQuery] = useState<string>(
+		searchParams.get("search") || ""
+	);
+	const [debouncedSearch, setDebouncedSearch] = useState<string>(searchQuery);
 
 	// Debounce search input
 	useEffect(() => {
@@ -205,6 +206,25 @@ export default function StaffCampaignList() {
 
 		return () => clearTimeout(timer);
 	}, [searchQuery]);
+
+	// Update URL when filters change
+	useEffect(() => {
+		const params = new URLSearchParams(searchParams);
+
+		if (statusFilter) {
+			params.set("status", statusFilter);
+		} else {
+			params.delete("status");
+		}
+
+		if (searchQuery) {
+			params.set("search", searchQuery);
+		} else {
+			params.delete("search");
+		}
+
+		setSearchParams(params, { replace: true });
+	}, [statusFilter, searchQuery, searchParams, setSearchParams]);
 
 	// Reset pagination when filters change
 	useEffect(() => {

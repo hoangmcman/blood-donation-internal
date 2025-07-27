@@ -11,6 +11,7 @@ import * as React from "react";
 import { useParams } from "react-router-dom";
 
 import CreateBloodUnitDialog from "@/components/dialog/CreateBloodUnitDialog";
+import Loader from "@/components/loader";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
@@ -141,42 +142,15 @@ export default function DonationRequestList() {
 				const status = row.getValue("currentStatus") as string;
 				const getStatusColor = (status: string) => {
 					switch (status.toLowerCase()) {
-						case "pending":
-							return "bg-yellow-100 text-yellow-700";
-						case "completed":
-							return "bg-green-100 text-green-700";
-						case "rejected":
-						case "appointment_cancelled":
-						case "appointment_absent":
-						case "customer_cancelled":
-							return "bg-red-100 text-red-700";
-						case "appointment_confirmed":
+						case "result_returned":
 							return "bg-blue-100 text-blue-700";
-						case "customer_checked_in":
-							return "bg-purple-100 text-purple-700";
 						default:
 							return "bg-gray-100 text-gray-700";
 					}
 				};
 				return (
 					<Badge className={getStatusColor(status)}>
-						{status === "pending"
-							? "Đang chờ"
-							: status === "completed"
-							? "Hoàn thành"
-							: status === "rejected"
-							? "Bị từ chối"
-							: status === "appointment_cancelled"
-							? "Hẹn hủy"
-							: status === "appointment_absent"
-							? "Vắng hẹn"
-							: status === "customer_cancelled"
-							? "Khách hủy"
-							: status === "appointment_confirmed"
-							? "Hẹn xác nhận"
-							: status === "customer_checked_in"
-							? "Khách đã đến"
-							: status.charAt(0).toUpperCase() + status.slice(1)}
+						{status === "result_returned" ? "Đã trả kết quả" : status}
 					</Badge>
 				);
 			},
@@ -198,25 +172,13 @@ export default function DonationRequestList() {
 
 	const { data, isLoading, error } = useGetDonationRequests(
 		id || "",
-		undefined,
+		"result_returned",
 		Number(pagination.pageSize),
 		Number(pagination.pageIndex) + 1
 	);
 
-	const filteredData =
-		data?.data.data.filter(
-			(donationRequest) =>
-				![
-					"pending",
-					"rejected",
-					"appointment_cancelled",
-					"appointment_absent",
-					"customer_cancelled",
-				].includes(donationRequest.currentStatus)
-		) || [];
-
 	const table = useReactTable({
-		data: filteredData,
+		data: data?.data.data || [],
 		columns,
 		state: {
 			sorting,
@@ -247,85 +209,97 @@ export default function DonationRequestList() {
 			<div className="flex justify-between items-center mb-4">
 				<h1 className="text-2xl font-bold">Yêu cầu hiến máu cho chiến dịch</h1>
 			</div>
-			<div className="rounded-md border">
-				<Table>
-					<TableHeader>
-						{table.getHeaderGroups().map((headerGroup) => (
-							<TableRow key={headerGroup.id}>
-								{headerGroup.headers.map((header) => (
-									<TableHead key={header.id}>
-										{header.isPlaceholder
-											? null
-											: flexRender(header.column.columnDef.header, header.getContext())}
-									</TableHead>
+
+			{isLoading && (
+				<div className="flex items-center justify-center">
+					<Loader />
+				</div>
+			)}
+
+			{!isLoading && (
+				<>
+					<div className="rounded-md border">
+						<Table>
+							<TableHeader>
+								{table.getHeaderGroups().map((headerGroup) => (
+									<TableRow key={headerGroup.id}>
+										{headerGroup.headers.map((header) => (
+											<TableHead key={header.id}>
+												{header.isPlaceholder
+													? null
+													: flexRender(header.column.columnDef.header, header.getContext())}
+											</TableHead>
+										))}
+									</TableRow>
 								))}
-							</TableRow>
-						))}
-					</TableHeader>
-					<TableBody>
-						{table.getRowModel().rows?.length ? (
-							table.getRowModel().rows.map((row) => (
-								<TableRow key={row.id}>
-									{row.getVisibleCells().map((cell) => (
-										<TableCell key={cell.id}>
-											{flexRender(cell.column.columnDef.cell, cell.getContext())}
+							</TableHeader>
+							<TableBody>
+								{table.getRowModel().rows?.length ? (
+									table.getRowModel().rows.map((row) => (
+										<TableRow key={row.id}>
+											{row.getVisibleCells().map((cell) => (
+												<TableCell key={cell.id}>
+													{flexRender(cell.column.columnDef.cell, cell.getContext())}
+												</TableCell>
+											))}
+										</TableRow>
+									))
+								) : (
+									<TableRow>
+										<TableCell colSpan={columns.length} className="h-24 text-center">
+											Không tìm thấy yêu cầu hiến máu nào.
 										</TableCell>
-									))}
-								</TableRow>
-							))
-						) : (
-							<TableRow>
-								<TableCell colSpan={columns.length} className="h-24 text-center">
-									Không tìm thấy yêu cầu hiến máu nào.
-								</TableCell>
-							</TableRow>
-						)}
-					</TableBody>
-				</Table>
-			</div>
-			<div className="flex items-center justify-end space-x-2 py-4">
-				<div className="flex-1 text-sm text-muted-foreground">
-					Trang {table.getState().pagination.pageIndex + 1} / {table.getPageCount()}
-				</div>
-				<div className="space-x-2">
-					<Button
-						variant="outline"
-						size="sm"
-						onClick={() => table.setPageIndex(0)}
-						disabled={!table.getCanPreviousPage()}
-					>
-						<ChevronsLeftIcon className="h-4 w-4" />
-					</Button>
-					<Button
-						variant="outline"
-						size="sm"
-						onClick={() => table.previousPage()}
-						disabled={!table.getCanPreviousPage()}
-					>
-						<ChevronLeftIcon className="h-4 w-4" />
-					</Button>
-					<Button
-						variant="outline"
-						size="sm"
-						onClick={() => table.nextPage()}
-						disabled={!table.getCanNextPage()}
-					>
-						<ChevronRightIcon className="h-4 w-4" />
-					</Button>
-					<Button
-						variant="outline"
-						size="sm"
-						onClick={() => table.setPageIndex(table.getPageCount() - 1)}
-						disabled={!table.getCanNextPage()}
-					>
-						<ChevronsRightIcon className="h-4 w-4" />
-					</Button>
-				</div>
-			</div>
+									</TableRow>
+								)}
+							</TableBody>
+						</Table>
+					</div>
+					<div className="flex items-center justify-end space-x-2 py-4">
+						<div className="flex-1 text-sm text-muted-foreground">
+							Trang {table.getState().pagination.pageIndex + 1} / {table.getPageCount()}
+						</div>
+						<div className="space-x-2">
+							<Button
+								variant="outline"
+								size="sm"
+								onClick={() => table.setPageIndex(0)}
+								disabled={!table.getCanPreviousPage()}
+							>
+								<ChevronsLeftIcon className="h-4 w-4" />
+							</Button>
+							<Button
+								variant="outline"
+								size="sm"
+								onClick={() => table.previousPage()}
+								disabled={!table.getCanPreviousPage()}
+							>
+								<ChevronLeftIcon className="h-4 w-4" />
+							</Button>
+							<Button
+								variant="outline"
+								size="sm"
+								onClick={() => table.nextPage()}
+								disabled={!table.getCanNextPage()}
+							>
+								<ChevronRightIcon className="h-4 w-4" />
+							</Button>
+							<Button
+								variant="outline"
+								size="sm"
+								onClick={() => table.setPageIndex(table.getPageCount() - 1)}
+								disabled={!table.getCanNextPage()}
+							>
+								<ChevronsRightIcon className="h-4 w-4" />
+							</Button>
+						</div>
+					</div>
+				</>
+			)}
+
 			<CreateBloodUnitDialog
 				open={isDialogOpen}
 				onOpenChange={setIsDialogOpen}
-				memberId={selectedMember.id} // thực ra là donationRequestId
+				donationRequestId={selectedMember.id}
 				memberName={selectedMember.name}
 			/>
 		</div>

@@ -63,6 +63,7 @@ export const useCreateBloodUnit = () => {
 	return useMutation({
 		mutationFn: createBloodUnit,
 		onSuccess: () => {
+			queryClient.invalidateQueries({ queryKey: ["donationRequests"] });
 			queryClient.invalidateQueries({ queryKey: ["bloodUnits"] });
 		},
 	});
