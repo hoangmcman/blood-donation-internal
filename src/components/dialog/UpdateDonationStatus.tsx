@@ -102,14 +102,25 @@ export default function UpdateDonationRequestDialog({
 	}, [donationData, form, selectedStatus]);
 
 	const onSubmit = (values: z.infer<typeof formSchema>) => {
-		// Kiểm tra ngày hẹn có hợp lệ hay không
-		const appointmentDate = values.appointmentDate ? new Date(values.appointmentDate) : null;
-		const today = new Date();
-		today.setHours(0, 0, 0, 0); // Đặt thời gian về 00:00 để so sánh ngày
+		// Lấy ngày hẹn từ donation request
+		const donationAppointmentDate = donationData?.appointmentDate 
+			? new Date(donationData.appointmentDate) 
+			: null;
 
-		if (appointmentDate && appointmentDate < today) {
-			// Hiển thị toast lỗi nếu ngày hẹn trong quá khứ
-			toast.error("Ngày hẹn không hợp lệ. Vui lòng chọn ngày trong tương lai.");
+		if (!donationAppointmentDate) {
+			toast.error("Không tìm thấy thông tin ngày hẹn.");
+			return;
+		}
+
+		// Set hours về 00:00:00 để so sánh chỉ ngày tháng năm
+		const today = new Date();
+		today.setHours(0, 0, 0, 0);
+		
+		donationAppointmentDate.setHours(0, 0, 0, 0);
+
+		// Chỉ cho phép update nếu ngày hẹn là ngày hiện tại
+		if (donationAppointmentDate.getTime() !== today.getTime()) {
+			toast.error("Chỉ có thể cập nhật trạng thái vào đúng ngày hẹn hiến máu.");
 			return;
 		}
 
