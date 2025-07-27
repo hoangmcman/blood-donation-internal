@@ -10,8 +10,8 @@ import {
 	SeparateComponentsPayload,
 	SeparateComponentsResponse,
 } from "@/interfaces/inventory";
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { StaffProfileService } from "@/services/staffProfile";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 
 import api from "../config/api";
 
@@ -204,7 +204,7 @@ export const useDeleteBloodUnitAction = () => {
 };
 
 export const separateComponents = async (
-	payload: Omit<SeparateComponentsPayload, 'staffId'>
+	payload: Omit<SeparateComponentsPayload, "staffId">
 ): Promise<ApiResponse<SeparateComponentsResponse>> => {
 	const staffProfile = await StaffProfileService.getProfile();
 	const staffId = staffProfile.id; // Lấy staffId từ profile
@@ -227,6 +227,7 @@ export const useSeparateComponents = () => {
 		mutationFn: separateComponents,
 		onSuccess: () => {
 			queryClient.invalidateQueries({ queryKey: ["bloodUnits"] });
+			queryClient.invalidateQueries({ queryKey: ["bloodUnitActions"] });
 		},
 	});
 };
