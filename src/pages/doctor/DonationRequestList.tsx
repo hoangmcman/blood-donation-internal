@@ -78,7 +78,10 @@ function DonationRequestActions({ donationRequest, onOpenDialog }: DonationReque
 	const requestId = donationRequest.id; // lấy id của donation request
 	const memberName = `${donationRequest.donor.firstName} ${donationRequest.donor.lastName}`;
 
-	const isBeforeAppointment = new Date() < new Date(donationRequest.appointmentDate);
+	const now = new Date();
+	const utc7 = new Date(now.getTime() + 7 * 60 * 60 * 1000);
+
+	const isBeforeAppointment = utc7 < new Date(donationRequest.appointmentDate);
 
 	return (
 		<DropdownMenu>
@@ -174,7 +177,8 @@ export default function DonationRequestList() {
 		id || "",
 		"result_returned",
 		Number(pagination.pageSize),
-		Number(pagination.pageIndex) + 1
+		Number(pagination.pageIndex) + 1,
+		false
 	);
 
 	const table = useReactTable({

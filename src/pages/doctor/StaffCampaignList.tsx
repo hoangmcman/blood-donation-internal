@@ -104,7 +104,7 @@ const columns: ColumnDef<Campaign, any>[] = [
 					case "not_started":
 						return "bg-blue-100 text-blue-700 hover:bg-blue-200";
 					case "ended":
-						return "bg-gray-100 text-gray-700 hover:bg-gray-200";				
+						return "bg-gray-100 text-gray-700 hover:bg-gray-200";
 					default:
 						return "bg-gray-100 text-gray-700 hover:bg-gray-200";
 				}
@@ -145,6 +145,7 @@ function CampaignActions({ campaign }: CampaignActionsProps) {
 	const [viewDetailOpen, setViewDetailOpen] = useState(false);
 
 	const now = new Date();
+	const utc7 = new Date(now.getTime() + 7 * 60 * 60 * 1000);
 
 	return (
 		<>
@@ -160,7 +161,7 @@ function CampaignActions({ campaign }: CampaignActionsProps) {
 						<Eye className="h-4 w-4" />
 						Xem chi tiết chiến dịch
 					</DropdownMenuItem>
-					{campaign.bloodCollectionDate && now > new Date(campaign.bloodCollectionDate) && (
+					{campaign.bloodCollectionDate && utc7 >= new Date(campaign.bloodCollectionDate) && (
 						<DropdownMenuItem
 							onClick={() => navigate(`/staff/campaign/${campaign.id}/donation-requests`)}
 						>
@@ -188,14 +189,10 @@ export default function StaffCampaignList() {
 		pageIndex: 0,
 		pageSize: 10,
 	});
-	
+
 	// Get initial filter values from URL params or use defaults
-	const [statusFilter, setStatusFilter] = useState<string>(
-		searchParams.get("status") || "ended"
-	);
-	const [searchQuery, setSearchQuery] = useState<string>(
-		searchParams.get("search") || ""
-	);
+	const [statusFilter, setStatusFilter] = useState<string>(searchParams.get("status") || "ended");
+	const [searchQuery, setSearchQuery] = useState<string>(searchParams.get("search") || "");
 	const [debouncedSearch, setDebouncedSearch] = useState<string>(searchQuery);
 
 	// Debounce search input

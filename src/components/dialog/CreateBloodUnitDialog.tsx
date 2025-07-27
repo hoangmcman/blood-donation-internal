@@ -72,7 +72,7 @@ export default function CreateBloodUnitDialog({
 		}
 	}, [donationRequest, isRequestLoading, donationResult, form]);
 
-	const { mutate } = useCreateBloodUnit();
+	const { mutate, isPending } = useCreateBloodUnit();
 
 	const onSubmit = (values: z.infer<typeof formSchema>) => {
 		mutate(
@@ -109,7 +109,7 @@ export default function CreateBloodUnitDialog({
 		return () => subscription.unsubscribe();
 	}, [form]);
 
-	const isLoading = isRequestLoading || isResultLoading;
+	const isLoading = isRequestLoading || isResultLoading || isPending;
 
 	return (
 		<Dialog open={open} onOpenChange={onOpenChange}>
