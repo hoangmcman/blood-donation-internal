@@ -291,7 +291,7 @@ export default function DonationRequestList() {
 			<CreateBloodUnitDialog
 				open={isDialogOpen}
 				onOpenChange={setIsDialogOpen}
-				memberId={selectedMember.id} // thực ra là donationRequestId
+				donationRequestId={selectedMember.id}
 				memberName={selectedMember.name}
 			/>
 		</div>

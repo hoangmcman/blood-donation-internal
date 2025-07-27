@@ -27,23 +27,24 @@ const formSchema = z.object({
 	bloodVolume: z.number().min(1, { message: "Dung tích máu phải lớn hơn 0" }),
 	remainingVolume: z.number().min(0, { message: "Dung tích còn lại phải ít nhất là 0" }),
 	expiredDate: z.string().min(1, { message: "Ngày hết hạn là bắt buộc" }),
+	donationRequestId: z.string().min(1, { message: "ID yêu cầu hiến máu là bắt buộc" }),
 });
 
 interface CreateBloodUnitDialogProps {
 	open: boolean;
 	onOpenChange: (open: boolean) => void;
-	memberId: string; // thực ra đây là donationRequestId
+	donationRequestId: string;
 	memberName: string;
 }
 
 export default function CreateBloodUnitDialog({
 	open,
 	onOpenChange,
-	memberId,
+	donationRequestId,
 }: CreateBloodUnitDialogProps) {
 	const { data: donationRequest, isLoading: isRequestLoading } =
-		useGetDonationRequestById(memberId);
-	const { data: donationResult, isLoading: isResultLoading } = useGetDonationResultById(memberId);
+		useGetDonationRequestById(donationRequestId);
+	const { data: donationResult, isLoading: isResultLoading } = useGetDonationResultById(donationRequestId);
 
 	const form = useForm<z.infer<typeof formSchema>>({
 		resolver: zodResolver(formSchema),
@@ -53,6 +54,7 @@ export default function CreateBloodUnitDialog({
 			bloodVolume: 0, // Đảm bảo giá trị mặc định là number
 			remainingVolume: 0, // Đảm bảo giá trị mặc định là number
 			expiredDate: "",
+			donationRequestId: donationRequestId
 		},
 	});
 
@@ -79,6 +81,7 @@ export default function CreateBloodUnitDialog({
 				bloodVolume: values.bloodVolume,
 				remainingVolume: values.remainingVolume,
 				expiredDate: values.expiredDate,
+				donationRequestId: values.donationRequestId,
 			},
 			{
 				onSuccess: () => {
@@ -186,6 +189,19 @@ export default function CreateBloodUnitDialog({
 									<FormLabel>Ngày hết hạn</FormLabel>
 									<FormControl>
 										<Input type="date" {...field} className="w-full p-2 border rounded" />
+									</FormControl>
+									<FormMessage />
+								</FormItem>
+							)}
+						/>
+						<FormField
+							control={form.control}
+							name="donationRequestId"
+							render={({ field }) => (
+								<FormItem>
+									<FormLabel>ID yêu cầu hiến máu</FormLabel>
+									<FormControl>
+										<Input {...field} className="w-full p-2 border rounded" disabled />
 									</FormControl>
 									<FormMessage />
 								</FormItem>

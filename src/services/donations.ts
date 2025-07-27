@@ -106,6 +106,7 @@ export const useUpdateDonationRequestResult = () => {
 				volumeMl: number;
 				bloodGroup: string;
 				bloodRh: string;
+				donationRequestId: string;
 				status: "completed" | "not_qualified";
 			};
 		}) => {

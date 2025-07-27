@@ -89,7 +89,11 @@ const getColumns = (): ColumnDef<DonationRequest>[] => [
 	{
 		accessorKey: "bloodType",
 		header: "Nhóm máu",
-		cell: ({ row }) => `${row.original.donor.bloodType?.group} ${row.original.donor.bloodType?.rh}`, // Vì DonationRequest không có bloodType, nên hiện tạm "Không có"
+		cell: ({ row }) => {
+			const bloodGroup = row.original.donor.bloodType?.group;
+			const bloodRh = row.original.donor.bloodType?.rh;
+			return (bloodGroup && bloodRh) ? `${bloodGroup} ${bloodRh}` : "Nhóm máu chưa xác định";
+		},
 	},
 	{
 		accessorKey: "currentStatus",
