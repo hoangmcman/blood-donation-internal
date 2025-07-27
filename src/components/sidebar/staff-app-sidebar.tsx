@@ -6,7 +6,6 @@ import {
 	Droplet,
 	FileClock,
 	FileCodeIcon,
-	FilePlus,
 	FileTextIcon,
 	FlagTriangleRight,
 	Newspaper,
@@ -38,99 +37,93 @@ const getUserSubRole = (userId: string | null): "staff" | "doctor" => {
 };
 
 const data = {
-  navMain: [
-    {
-      title: "Hiến máu",
-      url: "/staff/donation",
-      icon: Cross,
-      roles: ["doctor"], // Only for doctor
-    },
-    {
-      title: "Chiến dịch hiến máu",
-      url: "/staff/campaign",
-      icon: FlagTriangleRight,
-      roles: ["doctor"], // Only for doctor
-    },
-    {
-      title: "Quản lý đơn vị máu",
-      url: "/staff/bloodunitmanagement",
-      icon: Droplet,
-      roles: ["doctor"], // Only for doctor
-    },
-    {
-      title: "Yêu cầu khẩn cấp",
-      url: "/staff/emergency-request",
-      icon: FileClock,
-      roles: ["staff"], // Only for staff (replacing Lịch sử đơn vị máu)
-    },
-    {
-      title: "Danh sách bài viết",
-      url: "/staff/bloglist",
-      icon: Newspaper,
-      roles: ["staff"], // Only for staff
-    },   
-    {
-      title: "Xem kết quả hiến máu",
-      url: "/staff/donationresultlist",
-      icon: FilePlus,
-      roles: ["doctor"], // Only for doctor
-    },
-    {
-      title: "Lịch sử đơn vị máu",
-      url: "/staff/bloodunithistory",
-      icon: FileClock,
-      roles: ["doctor"],
-    },
-  ],
-  navClouds: [
-    {
-      title: "Chụp ảnh",
-      icon: CameraIcon,
-      isActive: true,
-      url: "/capture",
-      items: [
-        {
-          title: "Đề xuất đang hoạt động",
-          url: "/capture/active-proposals",
-        },
-        {
-          title: "Đã lưu trữ",
-          url: "/capture/archived",
-        },
-      ],
-    },
-    {
-      title: "Đề xuất",
-      icon: FileTextIcon,
-      url: "/proposal",
-      items: [
-        {
-          title: "Đề xuất đang hoạt động",
-          url: "/proposal/active-proposals",
-        },
-        {
-          title: "Đã lưu trữ",
-          url: "/proposal/archived",
-        },
-      ],
-    },
-    {
-      title: "Gợi ý",
-      icon: FileCodeIcon,
-      url: "/prompts",
-      items: [
-        {
-          title: "Đề xuất đang hoạt động",
-          url: "/prompts/active-proposals",
-        },
-        {
-          title: "Đã lưu trữ",
-          url: "/prompts/archived",
-        },
-      ],
-    },
-  ],
-}
+	navMain: [
+		{
+			title: "Hiến máu",
+			url: "/staff/donation",
+			icon: Cross,
+			roles: ["doctor"], // Only for doctor
+		},
+		{
+			title: "Chiến dịch hiến máu",
+			url: "/staff/campaign",
+			icon: FlagTriangleRight,
+			roles: ["doctor"], // Only for doctor
+		},
+		{
+			title: "Quản lý đơn vị máu",
+			url: "/staff/bloodunitmanagement",
+			icon: Droplet,
+			roles: ["doctor"], // Only for doctor
+		},
+		{
+			title: "Yêu cầu khẩn cấp",
+			url: "/staff/emergency-request",
+			icon: FileClock,
+			roles: ["staff"], // Only for staff (replacing Lịch sử đơn vị máu)
+		},
+		{
+			title: "Danh sách bài viết",
+			url: "/staff/bloglist",
+			icon: Newspaper,
+			roles: ["staff"], // Only for staff
+		},
+		{
+			title: "Lịch sử đơn vị máu",
+			url: "/staff/bloodunithistory",
+			icon: FileClock,
+			roles: ["doctor"],
+		},
+	],
+	navClouds: [
+		{
+			title: "Chụp ảnh",
+			icon: CameraIcon,
+			isActive: true,
+			url: "/capture",
+			items: [
+				{
+					title: "Đề xuất đang hoạt động",
+					url: "/capture/active-proposals",
+				},
+				{
+					title: "Đã lưu trữ",
+					url: "/capture/archived",
+				},
+			],
+		},
+		{
+			title: "Đề xuất",
+			icon: FileTextIcon,
+			url: "/proposal",
+			items: [
+				{
+					title: "Đề xuất đang hoạt động",
+					url: "/proposal/active-proposals",
+				},
+				{
+					title: "Đã lưu trữ",
+					url: "/proposal/archived",
+				},
+			],
+		},
+		{
+			title: "Gợi ý",
+			icon: FileCodeIcon,
+			url: "/prompts",
+			items: [
+				{
+					title: "Đề xuất đang hoạt động",
+					url: "/prompts/active-proposals",
+				},
+				{
+					title: "Đã lưu trữ",
+					url: "/prompts/archived",
+				},
+			],
+		},
+	],
+};
 
 function NavMain({ items }: { items: typeof data.navMain }) {
 	const pathname = useLocation().pathname;

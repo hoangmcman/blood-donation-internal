@@ -147,7 +147,11 @@ export default function BloodUnitList() {
 				const isExpired = expiredDate < new Date();
 				return (
 					<span className={isExpired ? "text-red-600 font-medium" : "text-gray-900"}>
-						{expiredDate.toLocaleDateString("vi-VN")}
+						{expiredDate.toLocaleDateString("vi-VN", {
+							year: "numeric",
+							month: "short",
+							day: "2-digit",
+						})}
 					</span>
 				);
 			},

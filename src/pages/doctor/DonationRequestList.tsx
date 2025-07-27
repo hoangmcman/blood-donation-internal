@@ -125,18 +125,14 @@ export default function DonationRequestList() {
 			cell: ({ row }: { row: any }) => row.original.donor.lastName,
 		},
 		{
-			accessorKey: "amount",
-			header: "Số lượng",
-		},
-		{
-			accessorKey: "note",
-			header: "Ghi chú",
-		},
-		{
 			accessorKey: "appointmentDate",
 			header: "Ngày hẹn",
 			cell: ({ row }: { row: any }) =>
-				new Date(row.getValue("appointmentDate")).toLocaleDateString("vi-VN"),
+				new Date(row.getValue("appointmentDate")).toLocaleDateString("vi-VN", {
+					year: "numeric",
+					month: "short",
+					day: "2-digit",
+				}),
 		},
 		{
 			accessorKey: "currentStatus",
@@ -184,12 +180,6 @@ export default function DonationRequestList() {
 					</Badge>
 				);
 			},
-		},
-		{
-			accessorKey: "createdAt",
-			header: "Ngày tạo",
-			cell: ({ row }: { row: any }) =>
-				new Date(row.getValue("createdAt")).toLocaleDateString("vi-VN"),
 		},
 		{
 			id: "actions",
