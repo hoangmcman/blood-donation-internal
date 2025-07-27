@@ -1,27 +1,40 @@
 "use client";
 
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { toast } from "sonner";
 
 import Loader from "@/components/loader";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import {
-	Table,
-	TableBody,
-	TableCell,
-	TableHead,
-	TableHeader,
-	TableRow,
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import { Slider } from "@/components/ui/slider";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
 } from "@/components/ui/table";
+import { useDebounce } from "@/hooks/use-debounce";
 import { BloodGroup, BloodRh } from "@/interfaces/blood";
+import { useFindCustomersByLocation } from "@/services/customer";
 import {
-	useGetEmergencyRequestById,
-	useProvideContactsForEmergencyRequest,
+  useGetEmergencyRequestById,
+  useProvideContactsForEmergencyRequest,
 } from "@/services/emergencyrequest";
-import { useGetBloodUnits } from "@/services/inventory";
+import {
+  AdvancedMarker,
+  APIProvider,
+  Map,
+  Pin,
+} from "@vis.gl/react-google-maps";
 
 interface ProvideContactsDialogProps {
 	open: boolean;
@@ -34,80 +47,78 @@ export function ProvideContactsDialog({
 	onOpenChange,
 	requestId,
 }: ProvideContactsDialogProps) {
-	const [selectedMemberIds, setSelectedMemberIds] = useState<string[]>([]);
+	const [selectedCustomerIds, setSelectedCustomerIds] = useState<string[]>([]);
+	const [radius, setRadius] = useState<number>(10); // Default 10km
+	const debouncedRadius = useDebounce(radius, 500); // Debounce 500ms
 
-	// First get the emergency request to get the blood type parameters
+	// First get the emergency request to get the blood type parameters and location
 	const {
 		data: emergencyRequestData,
 		isLoading: isEmergencyLoading,
 		error: emergencyError,
 	} = useGetEmergencyRequestById(requestId, { enabled: open });
 
-	// Then get blood units based on the emergency request parameters
+	// Prepare parameters for finding customers by location
+	const findCustomersParams = useMemo(() => {
+		if (!emergencyRequestData?.data) return null;
+
+		const { bloodType, latitude, longitude } = emergencyRequestData.data;
+
+		return {
+			bloodGroup: bloodType.group,
+			bloodRh: bloodType.rh,
+			radius: debouncedRadius, // Use debounced radius to avoid too many API calls
+			latitude: latitude, // Keep as string
+			longitude: longitude, // Keep as string
+		};
+	}, [emergencyRequestData, debouncedRadius]); // Use debouncedRadius in dependencies
+
+	// Get customers by location
 	const {
-		data: bloodUnitsData,
-		isLoading: isBloodUnitsLoading,
-		error: bloodUnitsError,
-	} = useGetBloodUnits(
-		{
-			bloodType: emergencyRequestData?.data?.bloodType.group,
-			// bloodComponentType: emergencyRequestData?.data?.bloodTypeComponent as any,
-			limit: 100, // Adjust limit as needed
-			// Add other parameters from emergency request as needed
-		},
-		{
-			enabled:
-				open &&
-				!!emergencyRequestData?.data?.bloodType?.group &&
-				!!emergencyRequestData?.data?.bloodTypeComponent,
-		}
-	);
+		data: customersData,
+		isLoading: isCustomersLoading,
+		error: customersError,
+	} = useFindCustomersByLocation(findCustomersParams!, {
+		enabled: open && !!findCustomersParams,
+	});
 
 	const { mutate: provideContacts, isPending } = useProvideContactsForEmergencyRequest();
 
-	const isLoading = isEmergencyLoading || isBloodUnitsLoading;
-	const error = emergencyError || bloodUnitsError;
+	const isEmergencyDataLoading = isEmergencyLoading;
+	const isCustomersDataLoading = isCustomersLoading;
+	const error = emergencyError || customersError;
 
-	// Extract unique members from blood units - filter duplicates by phone number
-	const uniqueMembers =
-		bloodUnitsData?.data?.data?.reduce((acc: any[], current) => {
-			const existingMember = acc.find((item) => item.member.phone === current.member.phone);
+	// Get unique customers from the response
+	const customers = customersData?.data?.customers || [];
 
-			if (!existingMember) {
-				acc.push(current);
-			}
-			return acc;
-		}, []) || [];
+	const handleCustomerSelect = (customer: any, checked: boolean) => {
+		const customerId = customer.id;
 
-	const handleMemberSelect = (member: any, checked: boolean) => {
-		// Use the actual member ID now that it's available
-		const memberId = member.member.id;
-
-		setSelectedMemberIds((prev) => {
+		setSelectedCustomerIds((prev) => {
 			if (checked) {
-				return [...prev, memberId];
+				return [...prev, customerId];
 			} else {
-				return prev.filter((id) => id !== memberId);
+				return prev.filter((id) => id !== customerId);
 			}
 		});
 	};
 
 	const handleSubmit = () => {
-		if (selectedMemberIds.length === 0) {
+		if (selectedCustomerIds.length === 0) {
 			toast.error("Vui lòng chọn ít nhất một liên hệ");
 			return;
 		}
 
-		const selectedMembers = uniqueMembers.filter((member) =>
-			selectedMemberIds.includes(member.member.id)
+		const selectedCustomers = customers.filter((customer) =>
+			selectedCustomerIds.includes(customer.id)
 		);
 
-		const suggestedContacts = selectedMembers.map((member) => ({
-			id: member.member.id,
-			firstName: member.member.firstName,
-			lastName: member.member.lastName,
-			phone: member.member.phone,
-			bloodType: member.member.bloodType || { group: "O" as BloodGroup, rh: "+" as BloodRh },
+		const suggestedContacts = selectedCustomers.map((customer) => ({
+			id: customer.id,
+			firstName: customer.firstName,
+			lastName: customer.lastName,
+			phone: customer.phone,
+			bloodType: customer.bloodType || { group: "O" as BloodGroup, rh: "+" as BloodRh },
 		}));
 
 		provideContacts(
@@ -119,7 +130,8 @@ export function ProvideContactsDialog({
 				onSuccess: () => {
 					toast.success("Đã cung cấp thông tin liên hệ thành công");
 					onOpenChange(false);
-					setSelectedMemberIds([]);
+					setSelectedCustomerIds([]);
+					setRadius(10); // Reset radius to default
 				},
 				onError: (error: any) => {
 					toast.error(`Lỗi: ${error.message || "Không thể cung cấp thông tin liên hệ"}`);
@@ -130,10 +142,11 @@ export function ProvideContactsDialog({
 
 	const handleClose = () => {
 		onOpenChange(false);
-		setSelectedMemberIds([]);
+		setSelectedCustomerIds([]);
+		setRadius(10); // Reset radius to default
 	};
 
-	if (isLoading) {
+	if (isEmergencyDataLoading) {
 		return (
 			<Dialog open={open} onOpenChange={handleClose}>
 				<DialogContent className="sm:max-w-[800px]">
@@ -165,71 +178,179 @@ export function ProvideContactsDialog({
 
 	return (
 		<Dialog open={open} onOpenChange={handleClose}>
-			<DialogContent className="sm:max-w-[900px] max-h-[80vh] overflow-y-auto">
+			<DialogContent className="sm:max-w-[1200px] max-h-[90vh] overflow-y-auto">
 				<DialogHeader>
 					<DialogTitle>Cung cấp thông tin liên hệ cho yêu cầu khẩn cấp</DialogTitle>
 				</DialogHeader>
 
-				<div className="space-y-4">
+				<div className="space-y-6">
 					<p className="text-sm text-muted-foreground">
-						Chọn những người hiến máu để cung cấp thông tin liên hệ cho yêu cầu khẩn cấp.
+						Chọn những người hiến máu gần khu vực yêu cầu để cung cấp thông tin liên hệ cho yêu cầu
+						khẩn cấp.
 					</p>
 
-					<div className="rounded-md border">
-						<Table>
-							<TableHeader>
-								<TableRow>
-									<TableHead className="w-12">Chọn</TableHead>
-									<TableHead>Tên người hiến</TableHead>
-									<TableHead>Số điện thoại</TableHead>
-									<TableHead>Nhóm máu</TableHead>
-									<TableHead>Rh</TableHead>
-								</TableRow>
-							</TableHeader>
-							<TableBody>
-								{uniqueMembers.length > 0 ? (
-									uniqueMembers.map((member) => {
-										const memberId = member.member.id;
-										const isSelected = selectedMemberIds.includes(memberId);
-
-										return (
-											<TableRow key={member.id} className={isSelected ? "bg-muted/50" : ""}>
-												<TableCell>
-													<Checkbox
-														checked={isSelected}
-														onCheckedChange={(checked) =>
-															handleMemberSelect(member, checked as boolean)
-														}
-													/>
-												</TableCell>
-												<TableCell className="font-medium">
-													{member.member.lastName} {member.member.firstName}
-												</TableCell>
-												<TableCell>{member.member.phone}</TableCell>
-												<TableCell>
-													<Badge variant="outline">{member.member.bloodType?.group || "N/A"}</Badge>
-												</TableCell>
-												<TableCell>
-													<Badge variant="outline">{member.member.bloodType?.rh || "N/A"}</Badge>
-												</TableCell>
-											</TableRow>
-										);
-									})
-								) : (
-									<TableRow>
-										<TableCell colSpan={5} className="h-24 text-center">
-											Không tìm thấy người hiến máu nào.
-										</TableCell>
-									</TableRow>
-								)}
-							</TableBody>
-						</Table>
+					{/* Radius Selection */}
+					<div className="space-y-3">
+						<div className="flex items-center justify-between">
+							<h3 className="text-lg font-semibold">Bán kính tìm kiếm</h3>
+							<span className="text-sm font-medium bg-muted px-2 py-1 rounded">{radius} km</span>
+						</div>
+						<Slider
+							value={[radius]}
+							onValueChange={(value) => {
+								setRadius(value[0]);
+								// Reset selected customers when radius changes
+								setSelectedCustomerIds([]);
+							}}
+							max={100}
+							min={10}
+							step={10}
+							className="w-full"
+						/>
+						<div className="flex justify-between text-xs text-muted-foreground">
+							<span>10 km</span>
+							<span>100 km</span>
+						</div>
 					</div>
 
-					{selectedMemberIds.length > 0 && (
+					{/* Google Maps Section */}
+					{findCustomersParams && (
+						<div className="space-y-2">
+							<h3 className="text-lg font-semibold">Bản đồ vị trí người hiến máu</h3>
+							<div className="w-full h-80 rounded-md border overflow-hidden">
+								<APIProvider apiKey={import.meta.env.VITE_GOOGLE_MAPS_API_KEY}>
+									<Map
+										key={`map-${debouncedRadius}-${findCustomersParams.latitude}-${findCustomersParams.longitude}`}
+										defaultCenter={{
+											lat: parseFloat(findCustomersParams.latitude),
+											lng: parseFloat(findCustomersParams.longitude),
+										}}
+										defaultZoom={12}
+										mapId="provide-contacts-map"
+									>
+										{/* Emergency Request Location Marker */}
+										<AdvancedMarker
+											key="emergency-location"
+											position={{
+												lat: parseFloat(findCustomersParams.latitude),
+												lng: parseFloat(findCustomersParams.longitude),
+											}}
+											title="Vị trí yêu cầu khẩn cấp"
+										>
+											<Pin
+												background={"#dc2626"}
+												borderColor={"#ffffff"}
+												glyphColor={"#ffffff"}
+												scale={1.4}
+											>
+												<div className="text-white text-xs font-bold">🚨</div>
+											</Pin>
+										</AdvancedMarker>
+
+										{/* Customer Markers */}
+										{customers.map((customer) => {
+											const isSelected = selectedCustomerIds.includes(customer.id);
+											return (
+												<AdvancedMarker
+													key={`customer-${customer.id}-${debouncedRadius}`}
+													position={{
+														lat: parseFloat(customer.latitude),
+														lng: parseFloat(customer.longitude),
+													}}
+													title={`${customer.lastName} ${customer.firstName} - ${customer.phone}`}
+												>
+													<Pin
+														background={isSelected ? "#16a34a" : "#3b82f6"}
+														borderColor={"#ffffff"}
+														glyphColor={"#ffffff"}
+														scale={1.0}
+													>
+														<div className="text-white text-xs font-bold">
+															{isSelected ? "✓" : "🩸"}
+														</div>
+													</Pin>
+												</AdvancedMarker>
+											);
+										})}
+									</Map>
+								</APIProvider>
+							</div>
+							<p className="text-sm text-muted-foreground">
+								� Vị trí yêu cầu khẩn cấp (đỏ) | 🩸 Người hiến máu (xanh) | ✓ Đã chọn (xanh lá) |
+								Bán kính {radius}km
+								{isCustomersDataLoading && " (Đang tải...)"}
+							</p>
+						</div>
+					)}
+
+					{/* Customers Table */}
+					<div className="space-y-2">
+						<h3 className="text-lg font-semibold">Danh sách người hiến máu</h3>
+						{isCustomersDataLoading ? (
+							<div className="flex items-center justify-center py-8">
+								<Loader />
+								<span className="ml-2 text-sm text-muted-foreground">
+									Đang tìm người hiến máu...
+								</span>
+							</div>
+						) : (
+							<div className="rounded-md border">
+								<Table>
+									<TableHeader>
+										<TableRow>
+											<TableHead className="w-12">Chọn</TableHead>
+											<TableHead>Tên người hiến</TableHead>
+											<TableHead>Số điện thoại</TableHead>
+											<TableHead>Nhóm máu</TableHead>
+											<TableHead>Rh</TableHead>
+										</TableRow>
+									</TableHeader>
+									<TableBody>
+										{customers.length > 0 ? (
+											customers.map((customer) => {
+												const customerId = customer.id;
+												const isSelected = selectedCustomerIds.includes(customerId);
+
+												return (
+													<TableRow key={customer.id} className={isSelected ? "bg-muted/50" : ""}>
+														<TableCell>
+															<Checkbox
+																checked={isSelected}
+																onCheckedChange={(checked) =>
+																	handleCustomerSelect(customer, checked as boolean)
+																}
+															/>
+														</TableCell>
+														<TableCell className="font-medium">
+															{customer.lastName} {customer.firstName}
+														</TableCell>
+														<TableCell>{customer.phone}</TableCell>
+														<TableCell>
+															<Badge variant="outline">{customer.bloodType?.group || "N/A"}</Badge>
+														</TableCell>
+														<TableCell>
+															<Badge variant="outline">{customer.bloodType?.rh || "N/A"}</Badge>
+														</TableCell>
+													</TableRow>
+												);
+											})
+										) : (
+											<TableRow>
+												<TableCell colSpan={5} className="h-24 text-center">
+													Không tìm thấy người hiến máu nào trong khu vực.
+												</TableCell>
+											</TableRow>
+										)}
+									</TableBody>
+								</Table>
+							</div>
+						)}
+					</div>
+
+					{selectedCustomerIds.length > 0 && (
 						<div className="bg-muted/50 p-3 rounded-md">
 							<p className="text-sm font-medium">
-								Đã chọn {selectedMemberIds.length} người hiến máu
+								Đã chọn {selectedCustomerIds.length} người hiến máu
 							</p>
 						</div>
 					)}
@@ -238,7 +359,7 @@ export function ProvideContactsDialog({
 						<Button variant="outline" onClick={handleClose} disabled={isPending}>
 							Hủy
 						</Button>
-						<Button onClick={handleSubmit} disabled={selectedMemberIds.length === 0 || isPending}>
+						<Button onClick={handleSubmit} disabled={selectedCustomerIds.length === 0 || isPending}>
 							{isPending ? "Đang xử lý..." : "Cung cấp thông tin liên hệ"}
 						</Button>
 					</div>
