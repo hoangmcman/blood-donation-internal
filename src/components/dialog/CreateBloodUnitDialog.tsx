@@ -44,7 +44,8 @@ export default function CreateBloodUnitDialog({
 }: CreateBloodUnitDialogProps) {
 	const { data: donationRequest, isLoading: isRequestLoading } =
 		useGetDonationRequestById(donationRequestId);
-	const { data: donationResult, isLoading: isResultLoading } = useGetDonationResultById(donationRequestId);
+	const { data: donationResult, isLoading: isResultLoading } =
+		useGetDonationResultById(donationRequestId);
 
 	const form = useForm<z.infer<typeof formSchema>>({
 		resolver: zodResolver(formSchema),
@@ -54,7 +55,7 @@ export default function CreateBloodUnitDialog({
 			bloodVolume: 0, // Đảm bảo giá trị mặc định là number
 			remainingVolume: 0, // Đảm bảo giá trị mặc định là number
 			expiredDate: "",
-			donationRequestId: donationRequestId
+			donationRequestId: donationRequestId,
 		},
 	});
 
@@ -66,6 +67,7 @@ export default function CreateBloodUnitDialog({
 				bloodVolume: donationResult?.volumeMl ?? 0, // Sử dụng ?? để đảm bảo giá trị number
 				remainingVolume: donationResult?.volumeMl ?? 0, // Sử dụng ?? để đảm bảo giá trị number
 				expiredDate: "",
+				donationRequestId: donationRequest.id,
 			});
 		}
 	}, [donationRequest, isRequestLoading, donationResult, form]);
@@ -198,7 +200,7 @@ export default function CreateBloodUnitDialog({
 							control={form.control}
 							name="donationRequestId"
 							render={({ field }) => (
-								<FormItem>
+								<FormItem className="hidden">
 									<FormLabel>ID yêu cầu hiến máu</FormLabel>
 									<FormControl>
 										<Input {...field} className="w-full p-2 border rounded" disabled />
@@ -208,7 +210,7 @@ export default function CreateBloodUnitDialog({
 							)}
 						/>
 						<Button type="submit" disabled={isLoading}>
-							Tạo đơn vị máu
+							{isLoading ? "Đang tạo..." : "Tạo đơn vị máu"}
 						</Button>
 					</form>
 				</Form>
