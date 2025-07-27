@@ -57,7 +57,7 @@ const VALID_TRANSITIONS: Record<Status, Status[]> = {
 
 const getStatusLabel = (status: Status): string => {
   const statusLabels: Record<Status, string> = {
-    appointment_confirmed: "Xác nhận request",
+    appointment_confirmed: "Xác nhận lịch hẹn",
     appointment_cancelled: "Hủy lịch hẹn",
     appointment_absent: "Vắng mặt vào ngày lấy máu",
     customer_cancelled: "Khách hàng hủy",
@@ -102,6 +102,17 @@ export default function UpdateDonationRequestDialog({
   }, [donationData, form]);
 
   const onSubmit = (values: z.infer<typeof formSchema>) => {
+    // Kiểm tra ngày hẹn có hợp lệ hay không
+    const appointmentDate = values.appointmentDate ? new Date(values.appointmentDate) : null;
+    const today = new Date();
+    today.setHours(0, 0, 0, 0); // Đặt thời gian về 00:00 để so sánh ngày
+
+    if (appointmentDate && appointmentDate < today) {
+      // Hiển thị toast lỗi nếu ngày hẹn trong quá khứ
+      toast.error("Ngày hẹn không hợp lệ. Vui lòng chọn ngày trong tương lai.");
+      return;
+    }
+
     mutate(
       { id: donationId, statusData: { ...values, status: values.status || "completed" } },
       {
@@ -112,6 +123,9 @@ export default function UpdateDonationRequestDialog({
             prev.set("status", values.status || "completed");
             return prev;
           });
+        },
+        onError: () => {
+          toast.error("Có lỗi xảy ra khi cập nhật trạng thái.");
         },
       }
     );
