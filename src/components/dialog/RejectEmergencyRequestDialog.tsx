@@ -29,6 +29,7 @@ interface RejectEmergencyRequestDialogProps {
 export function RejectEmergencyRequestDialog({ open, onOpenChange, requestId }: RejectEmergencyRequestDialogProps) {
   const { data, isLoading, error } = useGetEmergencyRequestById(requestId)
   const { mutate } = useRejectEmergencyRequest()
+
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: {
@@ -42,16 +43,16 @@ export function RejectEmergencyRequestDialog({ open, onOpenChange, requestId }: 
         { id: requestId, payload: values },
         {
           onSuccess: () => {
-            toast.success("Từ chối yêu cầu thành công")
-            onOpenChange(false)
+            toast.success("Từ chối yêu cầu thành công");
+            onOpenChange(false);
           },
           onError: () => {
-            toast.error("Từ chối yêu cầu thất bại")
+            toast.error("Từ chối yêu cầu thất bại");
           },
         }
-      )
+      );
     }
-  }
+  };
 
   if (isLoading) {
     return (

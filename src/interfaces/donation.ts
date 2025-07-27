@@ -28,51 +28,11 @@ export interface DonationRequest {
 		wardName?: string;
 		districtName?: string;
 		provinceName?: string;
+		canChangeBloodType?: boolean;
 	};
 	currentStatus: string;
 	appointmentDate: string;
-}
-
-export interface Option {
-	id: string;
-	label: string;
-}
-
-export interface Item {
-	id: string;
-	type: string;
-	label: string;
-	description: string;
-	placeholder?: string;
-	defaultValue?: string;
-	sortOrder: number;
-	minValue?: number;
-	maxValue?: number;
-	minLength?: number;
-	maxLength?: number;
-	isRequired: boolean;
-	pattern?: string;
-	options?: Option[];
-}
-
-export interface DonationResultTemplate {
-	id: string;
-	name: string;
-	description: string;
-	active: boolean;
-	createdAt: string;
-	updatedAt: string;
-	createdBy: {
-		id: string;
-		firstName: string;
-		lastName: string;
-	};
-	updatedBy: {
-		id: string;
-		firstName: string;
-		lastName: string;
-	};
-	items: Item[];
+	volumeMl?: number;
 }
 
 export interface BloodTestResult {
@@ -91,7 +51,6 @@ export interface DonationResult {
 		};
 	};
 	bloodTestResults: BloodTestResult;
-	template: DonationResultTemplate;
 	resultDate: string;
 	notes?: string;
 	volumeMl?: number; // Thêm thuộc tính volumeMl
@@ -115,6 +74,7 @@ export interface UpdateStatusRequest {
 	status: string;
 	appointmentDate?: string;
 	note?: string;
+	volumeMl?: number;
 }
 
 export interface PaginatedDonationResponse {

@@ -121,35 +121,35 @@ export function ApproveEmergencyRequestDialog({
   const requiredVolume = request.requiredVolume ?? 0
 
   const handleApprove = () => {
-    const selectedUnit = filteredBloodUnits.find((u) => u.id === selectedBloodUnitId)
+    const selectedUnit = filteredBloodUnits.find((u) => u.id === selectedBloodUnitId);
     if (!selectedUnit) {
-      toast.error("Vui lòng chọn một đơn vị máu trước khi duyệt")
-      return
+      toast.error("Vui lòng chọn một đơn vị máu trước khi duyệt");
+      return;
     }
 
     if (selectedUnit.remainingVolume < requiredVolume) {
-      toast.error("Không đủ lượng máu trong đơn vị này để duyệt yêu cầu")
-      return
+      toast.error("Không đủ lượng máu trong đơn vị này để duyệt yêu cầu");
+      return;
     }
 
     const payload = {
       bloodUnitId: selectedUnit.id,
       usedVolume: requiredVolume,
-    }
+    };
 
     mutate(
       { id: requestId, payload },
       {
         onSuccess: () => {
-          toast.success("Duyệt yêu cầu thành công")
-          onOpenChange(false)
+          toast.success("Duyệt yêu cầu thành công");
+          onOpenChange(false);
         },
         onError: () => {
-          toast.error("Duyệt yêu cầu thất bại")
+          toast.error("Duyệt yêu cầu thất bại");
         },
       }
-    )
-  }
+    );
+  };
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>

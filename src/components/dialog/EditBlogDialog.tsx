@@ -67,13 +67,13 @@ export function EditBlogDialog({ open, onOpenChange, blog }: EditBlogDialogProps
 
   const onSubmit = async (values: z.infer<typeof formSchema>) => {
     try {
-      await updateMutation.mutateAsync({ id: blog.id, payload: values })
-      toast.success("Cập nhật bài blog thành công")
-      onOpenChange(false)
+      await updateMutation.mutateAsync({ id: blog.id, payload: values });
+      toast.success("Cập nhật bài blog thành công");
+      onOpenChange(false);
     } catch (error) {
-      toast.error("Cập nhật bài blog thất bại")
+      toast.error("Cập nhật bài blog thất bại");
     }
-  }
+  };
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>

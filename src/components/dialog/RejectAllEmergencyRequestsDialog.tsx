@@ -35,6 +35,7 @@ interface RejectAllEmergencyRequestsDialogProps {
 export function RejectAllEmergencyRequestsDialog({ open, onOpenChange, bloodGroups, bloodRhs, bloodTypeComponents }: RejectAllEmergencyRequestsDialogProps) {
     const { mutate } = useRejectAllEmergencyRequests()
     const { data } = useGetEmergencyRequestLogs(1, 1000) // Fetch all data for filtering options
+
     const form = useForm<z.infer<typeof formSchema>>({
         resolver: zodResolver(formSchema),
         defaultValues: {
@@ -64,18 +65,17 @@ export function RejectAllEmergencyRequestsDialog({ open, onOpenChange, bloodGrou
                 bloodTypeComponent: values.bloodTypeComponent,
                 rejectionReason: values.reason,
             },
-
             {
                 onSuccess: () => {
-                    toast.success("Từ chối tất cả yêu cầu thành công")
-                    onOpenChange(false)
+                    toast.success("Từ chối tất cả yêu cầu thành công");
+                    onOpenChange(false);
                 },
                 onError: () => {
-                    toast.error("Từ chối tất cả yêu cầu thất bại")
+                    toast.error("Từ chối tất cả yêu cầu thất bại");
                 },
             }
-        )
-    }
+        );
+    };
 
     return (
         <Dialog open={open} onOpenChange={onOpenChange}>

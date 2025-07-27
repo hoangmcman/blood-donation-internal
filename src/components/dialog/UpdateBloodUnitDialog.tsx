@@ -24,13 +24,50 @@ import { useGetBloodUnitById, useSeparateComponents } from "../../services/inven
 import { useQuery } from '@tanstack/react-query';
 import { StaffProfileService } from "../../services/staffProfile"
 
+// ====== TÍNH NGÀY HẾT HẠN ======
+const today = new Date();
+today.setHours(0, 0, 0, 0);
+
+const addDays = (days: number) => {
+  const d = new Date();
+  d.setDate(d.getDate() + days);
+  return d.toISOString().split("T")[0];
+};
+
+const addMonths = (months: number) => {
+  const d = new Date();
+  d.setMonth(d.getMonth() + months);
+  return d.toISOString().split("T")[0];
+};
+
+// ====== VALIDATE ZOD ======
 const formSchema = z.object({
   redCellsVolume: z.number().min(1, "Dung tích hồng cầu phải lớn hơn 0"),
-  redCellsExpiredDate: z.string().min(1, "Ngày hết hạn hồng cầu là bắt buộc"),
+  redCellsExpiredDate: z.string().refine((dateStr) => {
+    const date = new Date(dateStr);
+    date.setHours(0,0,0,0);
+    const maxDate = new Date(today);
+    maxDate.setDate(today.getDate() + 42); // 42 ngày cho RBC
+    return date >= today && date <= maxDate;
+  }, "Ngày hết hạn hồng cầu phải trong vòng 42 ngày kể từ hôm nay"),
+
   plasmaVolume: z.number().min(1, "Dung tích huyết tương phải lớn hơn 0"),
-  plasmaExpiredDate: z.string().min(1, "Ngày hết hạn huyết tương là bắt buộc"),
+  plasmaExpiredDate: z.string().refine((dateStr) => {
+    const date = new Date(dateStr);
+    date.setHours(0,0,0,0);
+    const maxDate = new Date(today);
+    maxDate.setFullYear(today.getFullYear() + 1); // 12 tháng cho Plasma
+    return date >= today && date <= maxDate;
+  }, "Ngày hết hạn huyết tương phải trong vòng 12 tháng kể từ hôm nay"),
+
   plateletsVolume: z.number().min(1, "Dung tích tiểu cầu phải lớn hơn 0"),
-  plateletsExpiredDate: z.string().min(1, "Ngày hết hạn tiểu cầu là bắt buộc"),
+  plateletsExpiredDate: z.string().refine((dateStr) => {
+    const date = new Date(dateStr);
+    date.setHours(0,0,0,0);
+    const maxDate = new Date(today);
+    maxDate.setDate(today.getDate() + 7); // 7 ngày cho tiểu cầu
+    return date >= today && date <= maxDate;
+  }, "Ngày hết hạn tiểu cầu phải trong vòng 7 ngày kể từ hôm nay"),
 });
 
 interface UpdateBloodUnitDialogProps {
@@ -55,12 +92,13 @@ export default function UpdateBloodUnitDialog({ open, onOpenChange, bloodUnitId 
     resolver: zodResolver(formSchema),
     defaultValues: {
       redCellsVolume: 0,
-      redCellsExpiredDate: "",
+      redCellsExpiredDate: addDays(42),    // Auto gợi ý
       plasmaVolume: 0,
-      plasmaExpiredDate: "",
+      plasmaExpiredDate: addMonths(12),    // Auto gợi ý
       plateletsVolume: 0,
-      plateletsExpiredDate: "",
+      plateletsExpiredDate: addDays(7),    // Auto gợi ý
     },
+    mode: "onChange", // cần thiết để isValid cập nhật ngay
   });
 
   const initialBloodVolume = bloodUnitData?.data?.bloodVolume || 0;
@@ -106,6 +144,7 @@ export default function UpdateBloodUnitDialog({ open, onOpenChange, bloodUnitId 
                 <p className="text-sm text-gray-500">Dung tích còn lại: {remainingVolume >= 0 ? remainingVolume : 0} ml</p>
               </FormItem>
             </div>
+
             <FormField
               control={form.control}
               name="redCellsVolume"
@@ -132,6 +171,7 @@ export default function UpdateBloodUnitDialog({ open, onOpenChange, bloodUnitId 
                 </FormItem>
               )}
             />
+
             <FormField
               control={form.control}
               name="plasmaVolume"
@@ -158,6 +198,7 @@ export default function UpdateBloodUnitDialog({ open, onOpenChange, bloodUnitId 
                 </FormItem>
               )}
             />
+
             <FormField
               control={form.control}
               name="plateletsVolume"
@@ -184,7 +225,14 @@ export default function UpdateBloodUnitDialog({ open, onOpenChange, bloodUnitId 
                 </FormItem>
               )}
             />
-            <Button type="submit" className="col-span-2" disabled={remainingVolume < 0}>Tách máu</Button>
+
+            <Button 
+              type="submit" 
+              className="col-span-2" 
+              disabled={remainingVolume < 0 || !form.formState.isValid}
+            >
+              Tách máu
+            </Button>
           </form>
         </Form>
       </DialogContent>

@@ -98,17 +98,15 @@ export function ProvideContactsDialog({
 			return;
 		}
 
-		// Create the payload from selected members
-		const selectedMembers = uniqueMembers.filter((member) => {
-			const memberId = member.member.id;
-			return selectedMemberIds.includes(memberId);
-		});
+		const selectedMembers = uniqueMembers.filter((member) =>
+			selectedMemberIds.includes(member.member.id)
+		);
 
 		const suggestedContacts = selectedMembers.map((member) => ({
-			id: member.member.id, // Using actual member ID
+			id: member.member.id,
 			firstName: member.member.firstName,
 			lastName: member.member.lastName,
-			phone: member.member.phone, // Now using the actual phone from member field
+			phone: member.member.phone,
 			bloodType: member.member.bloodType || { group: "O" as BloodGroup, rh: "+" as BloodRh },
 		}));
 
