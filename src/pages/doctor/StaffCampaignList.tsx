@@ -49,21 +49,10 @@ import {
 } from "@tanstack/react-table";
 
 import { ViewCampaignDetail } from "../../components/dialog/ViewCampaignDetail";
+import { Campaign } from "../../interfaces/campaign";
 import { useGetCampaigns } from "../../services/campaign";
 
-interface Campaign {
-	id: string;
-	name: string;
-	description?: string;
-	startDate: string;
-	endDate?: string;
-	status: string;
-	banner: string;
-	location: string;
-	limitDonation: number;
-}
-
-const columns: ColumnDef<Campaign>[] = [
+const columns: ColumnDef<Campaign, any>[] = [
 	{
 		accessorKey: "name",
 		header: "Tên chiến dịch",
@@ -83,7 +72,23 @@ const columns: ColumnDef<Campaign>[] = [
 		header: "Ngày kết thúc",
 		cell: ({ row }) =>
 			row.getValue("endDate")
-				? new Date(row.getValue("endDate")).toLocaleDateString("vi-VN")
+				? new Date(row.getValue("endDate")).toLocaleDateString("vi-VN", {
+						year: "numeric",
+						month: "short",
+						day: "2-digit",
+				  })
+				: "Không có",
+	},
+	{
+		accessorKey: "bloodCollectionDate",
+		header: "Ngày lấy máu",
+		cell: ({ row }) =>
+			row.getValue("bloodCollectionDate")
+				? new Date(row.getValue("bloodCollectionDate")).toLocaleDateString("vi-VN", {
+						year: "numeric",
+						month: "short",
+						day: "2-digit",
+				  })
 				: "Không có",
 	},
 	{
@@ -145,6 +150,8 @@ function CampaignActions({ campaign }: CampaignActionsProps) {
 	const navigate = useNavigate();
 	const [viewDetailOpen, setViewDetailOpen] = useState(false);
 
+	const now = new Date();
+
 	return (
 		<>
 			<DropdownMenu>
@@ -159,12 +166,14 @@ function CampaignActions({ campaign }: CampaignActionsProps) {
 						<Eye className="h-4 w-4" />
 						Xem chi tiết chiến dịch
 					</DropdownMenuItem>
-					<DropdownMenuItem
-						onClick={() => navigate(`/staff/campaign/${campaign.id}/donation-requests`)}
-					>
-						<Stethoscope className="h-4 w-4" />
-						Xem yêu cầu hiến máu
-					</DropdownMenuItem>
+					{campaign.bloodCollectionDate && now > new Date(campaign.bloodCollectionDate) && (
+						<DropdownMenuItem
+							onClick={() => navigate(`/staff/campaign/${campaign.id}/donation-requests`)}
+						>
+							<Stethoscope className="h-4 w-4" />
+							Xem yêu cầu hiến máu
+						</DropdownMenuItem>
+					)}
 				</DropdownMenuContent>
 			</DropdownMenu>
 

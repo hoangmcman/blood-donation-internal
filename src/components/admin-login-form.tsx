@@ -105,6 +105,7 @@ export function AdminLoginForm({ className, onSwitchToSignup, ...props }: AdminL
 						id="password"
 						name="password"
 						type="password"
+						placeholder="********"
 						required
 						className="border-gray-300 focus:border-blue-600"
 					/>

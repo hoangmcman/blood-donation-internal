@@ -109,6 +109,7 @@ export function StaffLoginForm({ className, onSwitchToSignup, ...props }: StaffL
 						id="password"
 						name="password"
 						type="password"
+						placeholder="********"
 						required
 						className="border-gray-300 focus:border-green-600"
 					/>

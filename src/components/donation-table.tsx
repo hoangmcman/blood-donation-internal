@@ -259,6 +259,7 @@ const getColumns = (meta?: {
       );
     },
   },
+
 ];
 
 export function DonationTable({

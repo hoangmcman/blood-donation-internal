@@ -11,9 +11,8 @@ import {
 	PlusIcon,
 	TrashIcon,
 } from "lucide-react";
-import * as React from "react";
-import { toast } from "sonner";
 import { useEffect, useState } from "react";
+import { toast } from "sonner";
 
 import {
 	AlertDialog,
@@ -41,7 +40,6 @@ import {
 	SelectTrigger,
 	SelectValue,
 } from "@/components/ui/select";
-import { Toaster } from "@/components/ui/sonner";
 import {
 	Table,
 	TableBody,
@@ -81,15 +79,15 @@ const columns: ColumnDef<Campaign, any>[] = [
 			const getStatusColor = (status: string) => {
 				switch (status.toLowerCase()) {
 					case "active":
-						return "bg-green-100 text-green-700";
-					case "inactive":
-						return "bg-yellow-100 text-yellow-700";
+						return "bg-green-100 text-green-700 hover:bg-green-200";
+					case "not_started":
+						return "bg-yellow-100 text-yellow-700 hover:bg-yellow-200";
 					case "completed":
-						return "bg-blue-100 text-blue-700";
-					case "cancelled":
-						return "bg-red-100 text-red-700";
+						return "bg-blue-100 text-blue-700 hover:bg-blue-200";
+					case "ended":
+						return "bg-red-100 text-red-700 hover:bg-red-200";
 					default:
-						return "bg-gray-100 text-gray-700";
+						return "bg-gray-100 text-gray-700 hover:bg-gray-200";
 				}
 			};
 
@@ -97,12 +95,12 @@ const columns: ColumnDef<Campaign, any>[] = [
 				<Badge className={getStatusColor(status)}>
 					{status === "active"
 						? "Hoạt động"
-						: status === "inactive"
-						? "Không hoạt động"
+						: status === "not_started"
+						? "Chưa bắt đầu"
 						: status === "completed"
 						? "Hoàn thành"
-						: status === "cancelled"
-						? "Đã hủy"
+						: status === "ended"
+						? "Đã kết thúc"
 						: status}
 				</Badge>
 			);
@@ -124,9 +122,9 @@ interface CampaignActionsProps {
 }
 
 function CampaignActions({ campaign }: CampaignActionsProps) {
-	const [showDeleteDialog, setShowDeleteDialog] = React.useState(false);
-	const [showEditDialog, setShowEditDialog] = React.useState(false);
-	const [showViewDialog, setShowViewDialog] = React.useState(false);
+	const [showDeleteDialog, setShowDeleteDialog] = useState(false);
+	const [showEditDialog, setShowEditDialog] = useState(false);
+	const [showViewDialog, setShowViewDialog] = useState(false);
 	const deleteMutation = useDeleteCampaign();
 
 	const handleDelete = async () => {
@@ -381,7 +379,6 @@ export default function CampaignList() {
 				</div>
 			</div>
 			<CreateCampaignDialog open={showCreateDialog} onOpenChange={setShowCreateDialog} />
-			<Toaster />
 		</div>
 	);
 }
