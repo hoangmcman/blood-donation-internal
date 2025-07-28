@@ -69,7 +69,7 @@ export const useGetDonationRequests = (
 ) => {
 	return useQuery({
 		queryKey: ["donationRequests", id, status, page, limit, isBloodUnitCreated],
-		queryFn: () => getDonationRequests(id, status, limit, page),
+		queryFn: () => getDonationRequests(id, status, limit, page, isBloodUnitCreated),
 		enabled: !!id,
 	});
 };
